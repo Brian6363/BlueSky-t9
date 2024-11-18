@@ -1,8 +1,9 @@
 function T9KeyPad({ onPost }) {
-  const [displayText, setDisplayText] = useState('');
   const [isPosting, setIsPosting] = useState(false);
-  const lastKey = useRef({key: null, index: 0});
-
+  const displayRef = useRef(null);
+  const textRef = useRef('');
+  const lastKey = useRef({key: null, index: -1});
+  
   const keyMappings = {
     '1': ['.', ',', '!', '1'],
     '2': ['a', 'b', 'c', '2'],
@@ -16,23 +17,51 @@ function T9KeyPad({ onPost }) {
     '0': [' ', '0']
   };
 
+  const updateDisplay = (text) => {
+    textRef.current = text;
+    if (displayRef.current) {
+      displayRef.current.textContent = text || 'Type your post...';
+      const counter = displayRef.current.nextElementSibling;
+      if (counter) counter.textContent = 300 - text.length;
+    }
+  };
+
   const handleKey = useCallback((key) => {
     const chars = keyMappings[key];
+    const currentText = textRef.current;
+    
+    if (currentText.length >= 300 && lastKey.current.key !== key) return;
     
     if (lastKey.current.key === key) {
-      // Always cycle to next character for same key
+      // Instant cycle through characters
       lastKey.current.index = (lastKey.current.index + 1) % chars.length;
-      setDisplayText(prev => prev.slice(0, -1) + chars[lastKey.current.index]);
+      updateDisplay(currentText.slice(0, -1) + chars[lastKey.current.index]);
     } else {
-      // New key pressed - add first character
-      if (displayText.length < 300) {
-        lastKey.current = { key, index: 0 };
-        setDisplayText(prev => prev + chars[0]);
-      }
+      // New key pressed
+      lastKey.current = { key, index: 0 };
+      updateDisplay(currentText + chars[0]);
     }
     
     navigator?.vibrate?.(1);
-  }, [displayText.length]);
+  }, []);
+
+  const handleDelete = useCallback(() => {
+    updateDisplay(textRef.current.slice(0, -1));
+    lastKey.current = { key: null, index: -1 };
+    navigator?.vibrate?.(1);
+  }, []);
+
+  const handlePost = async () => {
+    if (!textRef.current.trim() || isPosting) return;
+    setIsPosting(true);
+    try {
+      await onPost(textRef.current);
+      updateDisplay('');
+      lastKey.current = { key: null, index: -1 };
+    } finally {
+      setIsPosting(false);
+    }
+  };
 
   const T9Button = memo(({ value, chars }) => (
     <button
@@ -57,13 +86,11 @@ function T9KeyPad({ onPost }) {
     <div className="w-11/12 max-w-sm mx-auto bg-gray-200 rounded-lg p-4 shadow-xl">
       <div className="bg-green-800 p-3 rounded-lg mb-4">
         <div className="bg-green-900 min-h-24 p-2 rounded">
-          <p className="text-green-400 break-words text-lg">
-            {displayText || 'Type your post...'}
+          <p ref={displayRef} className="text-green-400 break-words text-lg">
+            Type your post...
           </p>
         </div>
-        <div className="text-right text-sm mt-1 text-green-400">
-          {300 - displayText.length}
-        </div>
+        <div className="text-right text-sm mt-1 text-green-400">300</div>
       </div>
 
       <div className="grid grid-cols-3 gap-2">
@@ -78,8 +105,7 @@ function T9KeyPad({ onPost }) {
         <button
           onTouchStart={(e) => {
             e.preventDefault();
-            setDisplayText(t => t.slice(0, -1));
-            navigator?.vibrate?.(1);
+            handleDelete();
           }}
           className="bg-gray-300 active:bg-gray-400 rounded-lg text-center p-4"
         >
@@ -91,8 +117,7 @@ function T9KeyPad({ onPost }) {
         <button
           onTouchStart={(e) => {
             e.preventDefault();
-            setDisplayText(t => t.slice(0, -1));
-            navigator?.vibrate?.(1);
+            handleDelete();
           }}
           className="bg-gray-300 active:bg-gray-400 rounded-lg text-center p-4"
         >
@@ -101,23 +126,16 @@ function T9KeyPad({ onPost }) {
       </div>
 
       <button
-        onTouchStart={async (e) => {
+        onTouchStart={(e) => {
           e.preventDefault();
-          if (!displayText.trim() || isPosting) return;
-          setIsPosting(true);
-          try {
-            await onPost(displayText);
-            setDisplayText('');
-          } finally {
-            setIsPosting(false);
-          }
+          handlePost();
         }}
         className="w-full mt-4 p-4 rounded-lg bg-blue-500 text-white text-lg
                    active:bg-blue-600 disabled:bg-gray-400"
-        disabled={isPosting || !displayText.trim()}
+        disabled={isPosting}
       >
         {isPosting ? 'Posting...' : 'Post to BlueSky'}
       </button>
     </div>
   );
-}s
+}
