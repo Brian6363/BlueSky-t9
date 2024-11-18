@@ -1,15 +1,18 @@
-// VERSION 3.0 - PURPLE
+// VERSION 3.0 - PURPLE - DEBUG
 function T9KeyPad({ onPost }) {
   const containerRef = useRef();
-  const VERSION = "v2.0.0"; // Increased version number
+  
+  // Debug log to console
+  console.log('T9KeyPad DEBUG VERSION 3.0 initializing');
 
   useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
 
+    console.log('Container mounted, initializing UI');
+
     let text = '';
     let lastKey = null;
-    let tapCount = 0;
 
     const keyMappings = {
       '1': ['.', ',', '!', '1'],
@@ -24,11 +27,11 @@ function T9KeyPad({ onPost }) {
       '0': [' ', '0']
     };
 
-    // Dramatically different UI
     container.innerHTML = `
       <div class="w-11/12 max-w-sm mx-auto bg-purple-900 rounded-lg p-4 shadow-xl select-none">
         <div class="text-center mb-4">
-          <h1 class="text-yellow-400 text-2xl font-bold">📱 NEW T9 KEYBOARD ${VERSION}</h1>
+          <h1 class="text-yellow-400 text-2xl font-bold">🚀 DEBUG T9 v3.0</h1>
+          <div id="debugInfo" class="text-yellow-200 text-xs"></div>
         </div>
         <div class="bg-purple-800 p-3 rounded-lg mb-4">
           <div class="bg-purple-950 min-h-24 p-2 rounded">
@@ -46,18 +49,26 @@ function T9KeyPad({ onPost }) {
     const display = container.querySelector('#display');
     const counter = container.querySelector('#counter');
     const keypad = container.querySelector('#keypad');
+    const debugInfo = container.querySelector('#debugInfo');
+
+    function updateDebug(action, key) {
+      debugInfo.textContent = `Last action: ${action} - Key: ${key}`;
+      console.log(`Debug: ${action} - Key: ${key}`);
+    }
 
     function handleKey(key) {
       const chars = keyMappings[key];
       
       if (key !== lastKey) {
-        tapCount = 0;
         if (text.length < 300) {
           text += chars[0];
+          updateDebug('New key', key);
         }
       } else {
-        tapCount = (tapCount + 1) % chars.length;
-        text = text.slice(0, -1) + chars[tapCount];
+        const currentIndex = chars.indexOf(text[text.length - 1]);
+        const nextIndex = (currentIndex + 1) % chars.length;
+        text = text.slice(0, -1) + chars[nextIndex];
+        updateDebug('Cycle key', `${key} -> ${chars[nextIndex]}`);
       }
       
       display.textContent = text || 'Type your post...';
@@ -82,36 +93,47 @@ function T9KeyPad({ onPost }) {
           btn.innerHTML = `<div class="text-xl text-yellow-400">${key}</div>`;
         }
 
-        btn.addEventListener('touchstart', (e) => {
+        const pressHandler = (e) => {
           e.preventDefault();
           if (key === '*' || key === '#') {
             text = text.slice(0, -1);
             display.textContent = text || 'Type your post...';
             counter.textContent = 300 - text.length;
             lastKey = null;
+            updateDebug('Delete', key);
           } else if (keyMappings[key]) {
             handleKey(key);
           }
-        }, { passive: false });
+        };
+
+        btn.addEventListener('touchstart', pressHandler, { passive: false });
+        btn.addEventListener('mousedown', pressHandler);
 
         keypad.appendChild(btn);
-      });
+    });
 
     container.querySelector('#post').addEventListener('click', async () => {
       if (!text.trim()) return;
+      updateDebug('Posting', 'message');
       try {
         await onPost(text);
         text = '';
         display.textContent = 'Type your post...';
         counter.textContent = '300';
         lastKey = null;
+        updateDebug('Posted', 'success');
       } catch (error) {
         console.error(error);
+        updateDebug('Post failed', error.message);
       }
     });
 
     container.addEventListener('touchmove', e => e.preventDefault(), { passive: false });
     container.addEventListener('touchend', e => e.preventDefault(), { passive: false });
+
+    // Debug initialization complete
+    console.log('T9KeyPad initialization complete');
+    updateDebug('Initialized', 'ready');
 
     return () => {
       container.innerHTML = '';
@@ -120,3 +142,5 @@ function T9KeyPad({ onPost }) {
 
   return <div ref={containerRef} />;
 }
+
+export default T9KeyPad;
