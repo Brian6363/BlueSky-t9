@@ -2,8 +2,9 @@ function T9KeyPad({ onPost }) {
   const [isPosting, setIsPosting] = useState(false);
   const displayRef = useRef(null);
   const textRef = useRef('');
-  const lastKey = useRef({key: null, index: -1});
-  
+  const keypadRef = useRef(null);
+  const lastKey = useRef({ key: null, index: -1 });
+
   const keyMappings = {
     '1': ['.', ',', '!', '1'],
     '2': ['a', 'b', 'c', '2'],
@@ -26,61 +27,70 @@ function T9KeyPad({ onPost }) {
     }
   };
 
-  const handleKey = useCallback((key) => {
-    const chars = keyMappings[key];
-    const currentText = textRef.current;
-    
-    if (currentText.length >= 300 && lastKey.current.key !== key) return;
-    
-    if (lastKey.current.key === key) {
-      // Instant cycle through characters
-      lastKey.current.index = (lastKey.current.index + 1) % chars.length;
-      updateDisplay(currentText.slice(0, -1) + chars[lastKey.current.index]);
-    } else {
-      // New key pressed
-      lastKey.current = { key, index: 0 };
-      updateDisplay(currentText + chars[0]);
-    }
-    
-    navigator?.vibrate?.(1);
-  }, []);
+  useEffect(() => {
+    const keypad = keypadRef.current;
+    if (!keypad) return;
 
-  const handleDelete = useCallback(() => {
-    updateDisplay(textRef.current.slice(0, -1));
-    lastKey.current = { key: null, index: -1 };
-    navigator?.vibrate?.(1);
-  }, []);
+    let activeKey = null;
+    let touchStartTime = 0;
 
-  const handlePost = async () => {
-    if (!textRef.current.trim() || isPosting) return;
-    setIsPosting(true);
-    try {
-      await onPost(textRef.current);
-      updateDisplay('');
-      lastKey.current = { key: null, index: -1 };
-    } finally {
-      setIsPosting(false);
-    }
-  };
+    const getKeyFromTouch = (touch) => {
+      const element = document.elementFromPoint(touch.clientX, touch.clientY);
+      return element?.getAttribute('data-key');
+    };
 
-  const T9Button = memo(({ value, chars }) => (
-    <button
-      onTouchStart={(e) => {
-        e.preventDefault();
-        handleKey(value);
-      }}
-      className="bg-gray-300 active:bg-gray-400 rounded-lg text-center p-4
-                 touch-manipulation select-none"
-      style={{
-        WebkitTapHighlightColor: 'transparent',
-        touchAction: 'manipulation',
-        userSelect: 'none'
-      }}
-    >
-      <div className="text-xl font-bold">{value}</div>
-      <div className="text-xs">{chars.join(' ')}</div>
-    </button>
-  ));
+    const handleTouchStart = (e) => {
+      e.preventDefault();
+      touchStartTime = performance.now();
+      activeKey = getKeyFromTouch(e.touches[0]);
+      if (!activeKey) return;
+
+      if (activeKey === 'delete') {
+        updateDisplay(textRef.current.slice(0, -1));
+        lastKey.current = { key: null, index: -1 };
+        return;
+      }
+
+      if (activeKey === 'post') {
+        if (!isPosting && textRef.current.trim()) {
+          setIsPosting(true);
+          onPost(textRef.current).finally(() => {
+            setIsPosting(false);
+            updateDisplay('');
+          });
+        }
+        return;
+      }
+
+      const chars = keyMappings[activeKey];
+      if (!chars) return;
+
+      const currentText = textRef.current;
+      if (currentText.length >= 300 && lastKey.current.key !== activeKey) return;
+
+      if (lastKey.current.key === activeKey) {
+        lastKey.current.index = (lastKey.current.index + 1) % chars.length;
+        updateDisplay(currentText.slice(0, -1) + chars[lastKey.current.index]);
+      } else {
+        lastKey.current = { key: activeKey, index: 0 };
+        updateDisplay(currentText + chars[0]);
+      }
+
+      navigator?.vibrate?.(1);
+    };
+
+    const handleTouchEnd = () => {
+      activeKey = null;
+    };
+
+    keypad.addEventListener('touchstart', handleTouchStart, { passive: false });
+    keypad.addEventListener('touchend', handleTouchEnd);
+
+    return () => {
+      keypad.removeEventListener('touchstart', handleTouchStart);
+      keypad.removeEventListener('touchend', handleTouchEnd);
+    };
+  }, [isPosting, onPost]);
 
   return (
     <div className="w-11/12 max-w-sm mx-auto bg-gray-200 rounded-lg p-4 shadow-xl">
@@ -93,49 +103,52 @@ function T9KeyPad({ onPost }) {
         <div className="text-right text-sm mt-1 text-green-400">300</div>
       </div>
 
-      <div className="grid grid-cols-3 gap-2">
-        {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((num) => (
-          <T9Button 
-            key={num} 
-            value={num.toString()} 
-            chars={keyMappings[num.toString()]}
-          />
-        ))}
-        
-        <button
-          onTouchStart={(e) => {
-            e.preventDefault();
-            handleDelete();
-          }}
-          className="bg-gray-300 active:bg-gray-400 rounded-lg text-center p-4"
-        >
-          <div className="text-xl">*</div>
-        </button>
-        
-        <T9Button value="0" chars={keyMappings['0']} />
-        
-        <button
-          onTouchStart={(e) => {
-            e.preventDefault();
-            handleDelete();
-          }}
-          className="bg-gray-300 active:bg-gray-400 rounded-lg text-center p-4"
-        >
-          <div className="text-xl">#</div>
-        </button>
-      </div>
+      <div ref={keypadRef} className="select-none">
+        <div className="grid grid-cols-3 gap-2">
+          {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((num) => (
+            <div
+              key={num}
+              data-key={num}
+              className="bg-gray-300 active:bg-gray-400 rounded-lg text-center p-4 touch-manipulation"
+            >
+              <div className="text-xl font-bold">{num}</div>
+              <div className="text-xs">
+                {keyMappings[num].join(' ')}
+              </div>
+            </div>
+          ))}
+          
+          <div
+            data-key="delete"
+            className="bg-gray-300 active:bg-gray-400 rounded-lg text-center p-4"
+          >
+            <div className="text-xl">*</div>
+          </div>
+          
+          <div
+            data-key="0"
+            className="bg-gray-300 active:bg-gray-400 rounded-lg text-center p-4"
+          >
+            <div className="text-xl font-bold">0</div>
+            <div className="text-xs">space</div>
+          </div>
+          
+          <div
+            data-key="delete"
+            className="bg-gray-300 active:bg-gray-400 rounded-lg text-center p-4"
+          >
+            <div className="text-xl">#</div>
+          </div>
+        </div>
 
-      <button
-        onTouchStart={(e) => {
-          e.preventDefault();
-          handlePost();
-        }}
-        className="w-full mt-4 p-4 rounded-lg bg-blue-500 text-white text-lg
-                   active:bg-blue-600 disabled:bg-gray-400"
-        disabled={isPosting}
-      >
-        {isPosting ? 'Posting...' : 'Post to BlueSky'}
-      </button>
+        <div
+          data-key="post"
+          className={`w-full mt-4 p-4 rounded-lg text-center text-white text-lg
+                     ${isPosting ? 'bg-gray-400' : 'bg-blue-500 active:bg-blue-600'}`}
+        >
+          {isPosting ? 'Posting...' : 'Post to BlueSky'}
+        </div>
+      </div>
     </div>
   );
 }
