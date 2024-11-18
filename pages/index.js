@@ -2,17 +2,6 @@ function T9KeyPad({ onPost }) {
   const [displayText, setDisplayText] = useState('');
   const [mode, setMode] = useState('ABC');
   const [isPosting, setIsPosting] = useState(false);
-  const [postError, setPostError] = useState('');
-  
-  // Simplified key state using a single ref instead of multiple states
-  const keyState = useRef({
-    currentKey: null,
-    lastPressTime: 0,
-    pressCount: 0
-  });
-
-  const remainingChars = MAX_POST_LENGTH - displayText.length;
-  const isOverLimit = remainingChars < 0;
 
   const keyMappings = {
     '1': ['.', ',', '!', '1'],
@@ -27,160 +16,103 @@ function T9KeyPad({ onPost }) {
     '0': [' ', '0']
   };
 
-  // Optimized key press handler
-  const handleKeyPress = useCallback((key) => {
-    const now = Date.now();
-    const state = keyState.current;
-    
-    if (state.currentKey === key && now - state.lastPressTime < 800) {
-      // Same key pressed within 800ms, cycle through characters
-      const chars = keyMappings[key];
-      state.pressCount = (state.pressCount + 1) % chars.length;
-      setDisplayText(text => text.slice(0, -1) + chars[state.pressCount]);
-    } else {
-      // New key or timeout exceeded
-      if (displayText.length < MAX_POST_LENGTH) {
-        setDisplayText(text => text + keyMappings[key][0]);
-      }
-      state.pressCount = 0;
+  // Simplified instant press handler
+  const handleKeyPress = (key) => {
+    if (displayText.length < 300) {
+      setDisplayText(text => text + keyMappings[key][0]);
+      if (navigator.vibrate) navigator.vibrate(10);
     }
-    
-    state.currentKey = key;
-    state.lastPressTime = now;
+  };
 
-    // Quick vibration feedback
-    if (navigator.vibrate) {
-      navigator.vibrate(25);
-    }
-  }, [displayText]);
-
-  // Optimized handlers with immediate feedback
-  const handleDelete = useCallback(() => {
+  const handleDelete = () => {
     setDisplayText(text => text.slice(0, -1));
-    if (navigator.vibrate) navigator.vibrate([25, 25]);
-  }, []);
+    if (navigator.vibrate) navigator.vibrate(10);
+  };
 
-  const toggleMode = useCallback(() => {
+  const toggleMode = () => {
     setMode(mode => mode === 'ABC' ? '123' : 'ABC');
-    if (navigator.vibrate) navigator.vibrate(25);
-  }, []);
+    if (navigator.vibrate) navigator.vibrate(10);
+  };
 
-  const handlePostSubmit = async () => {
-    if (isOverLimit || !displayText.length) return;
+  const handlePost = async () => {
+    if (!displayText.trim()) return;
     setIsPosting(true);
-    setPostError('');
-    
     try {
       await onPost(displayText);
       setDisplayText('');
-      alert('Posted successfully!');
-    } catch (error) {
-      setPostError('Failed to post. Please try again.');
     } finally {
       setIsPosting(false);
     }
   };
 
+  const Button = ({ children, onPress, className = "" }) => (
+    <button
+      onTouchStart={(e) => {
+        e.preventDefault();
+        onPress();
+      }}
+      onClick={onPress}
+      className={`active:bg-gray-500 p-4 rounded-lg text-center select-none 
+        touch-manipulation bg-gray-300 ${className}`}
+      style={{
+        WebkitTapHighlightColor: 'transparent',
+        touchAction: 'manipulation',
+        userSelect: 'none',
+        WebkitUserSelect: 'none'
+      }}
+    >
+      {children}
+    </button>
+  );
+
   return (
     <div className="w-11/12 max-w-sm mx-auto bg-gray-200 rounded-lg p-4 shadow-xl">
-      {/* Screen */}
       <div className="bg-green-800 p-3 rounded-lg mb-4">
         <div className="flex justify-between text-green-400 text-xs mb-1">
           <span>BlueSky</span>
           <span>{mode}</span>
         </div>
-        <div className="bg-green-900 min-h-24 p-2 rounded relative">
+        <div className="bg-green-900 min-h-24 p-2 rounded">
           <p className="text-green-400 break-words text-lg">
             {displayText || 'Type your post...'}
           </p>
-          {isPosting && (
-            <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-              <span className="text-green-400">Posting...</span>
-            </div>
-          )}
         </div>
-        <div className={`text-right text-sm mt-1 ${isOverLimit ? 'text-red-400' : 'text-green-400'}`}>
-          {remainingChars}
+        <div className="text-right text-sm mt-1 text-green-400">
+          {300 - displayText.length}
         </div>
       </div>
 
-      {postError && (
-        <div className="text-red-500 text-sm mb-2 text-center">{postError}</div>
-      )}
-
-      {/* Optimized Keypad */}
       <div className="grid grid-cols-3 gap-2">
         {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((num) => (
-          <button
+          <Button
             key={num}
-            onTouchStart={() => handleKeyPress(num.toString())}
-            onClick={() => handleKeyPress(num.toString())}
-            className="bg-gray-300 active:bg-gray-500 p-4 rounded-lg text-center select-none touch-manipulation"
-            style={{
-              WebkitTapHighlightColor: 'transparent',
-              touchAction: 'manipulation',
-              userSelect: 'none'
-            }}
+            onPress={() => handleKeyPress(num.toString())}
           >
             <div className="text-xl font-bold">{num}</div>
             <div className="text-xs">{keyMappings[num].join(' ')}</div>
-          </button>
+          </Button>
         ))}
-        <button
-          onTouchStart={toggleMode}
-          onClick={toggleMode}
-          className="bg-gray-300 active:bg-gray-500 p-4 rounded-lg text-center text-xl select-none touch-manipulation"
-          style={{
-            WebkitTapHighlightColor: 'transparent',
-            touchAction: 'manipulation',
-            userSelect: 'none'
-          }}
-        >
-          *
-        </button>
-        <button
-          onTouchStart={() => handleKeyPress('0')}
-          onClick={() => handleKeyPress('0')}
-          className="bg-gray-300 active:bg-gray-500 p-4 rounded-lg text-center select-none touch-manipulation"
-          style={{
-            WebkitTapHighlightColor: 'transparent',
-            touchAction: 'manipulation',
-            userSelect: 'none'
-          }}
-        >
+        
+        <Button onPress={toggleMode}>
+          <div className="text-xl">*</div>
+        </Button>
+        
+        <Button onPress={() => handleKeyPress('0')}>
           <div className="text-xl font-bold">0</div>
           <div className="text-xs">space</div>
-        </button>
-        <button
-          onTouchStart={handleDelete}
-          onClick={handleDelete}
-          className="bg-gray-300 active:bg-gray-500 p-4 rounded-lg text-center text-xl select-none touch-manipulation"
-          style={{
-            WebkitTapHighlightColor: 'transparent',
-            touchAction: 'manipulation',
-            userSelect: 'none'
-          }}
-        >
-          #
-        </button>
+        </Button>
+        
+        <Button onPress={handleDelete}>
+          <div className="text-xl">#</div>
+        </Button>
       </div>
 
-      {/* Send Button */}
-      <button
-        onClick={handlePostSubmit}
-        disabled={isOverLimit || displayText.length === 0 || isPosting}
-        className={`w-full mt-4 p-4 rounded-lg flex items-center justify-center gap-2 text-white text-lg font-medium select-none
-          ${isOverLimit || displayText.length === 0 || isPosting
-            ? 'bg-gray-400'
-            : 'bg-blue-500 active:bg-blue-700'}`}
-        style={{
-          WebkitTapHighlightColor: 'transparent',
-          touchAction: 'manipulation',
-          userSelect: 'none'
-        }}
+      <Button 
+        onPress={handlePost}
+        className="w-full mt-4 bg-blue-500 text-white"
       >
         {isPosting ? 'Posting...' : 'Post to BlueSky'}
-      </button>
+      </Button>
     </div>
   );
 }
