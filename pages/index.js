@@ -1,3 +1,4 @@
+// VERSION 3.0 - PURPLE
 function T9KeyPad({ onPost }) {
   const containerRef = useRef();
   const VERSION = "v2.0.0"; // Increased version number
