@@ -2,6 +2,16 @@ function T9KeyPad({ onPost }) {
   const [displayText, setDisplayText] = useState('');
   const [mode, setMode] = useState('ABC');
   const [isPosting, setIsPosting] = useState(false);
+  
+  // Use refs for instant updates
+  const textRef = useRef(displayText);
+  textRef.current = displayText;
+  
+  const keyState = useRef({
+    lastKey: null,
+    lastPress: 0,
+    count: 0
+  });
 
   const keyMappings = {
     '1': ['.', ',', '!', '1'],
@@ -16,49 +26,43 @@ function T9KeyPad({ onPost }) {
     '0': [' ', '0']
   };
 
-  // Simplified instant press handler
-  const handleKeyPress = (key) => {
-    if (displayText.length < 300) {
-      setDisplayText(text => text + keyMappings[key][0]);
-      if (navigator.vibrate) navigator.vibrate(10);
+  const handleKeyPress = useCallback((key) => {
+    const now = Date.now();
+    const state = keyState.current;
+    const chars = keyMappings[key];
+    
+    // Direct state mutation for instant feedback
+    if (state.lastKey !== key || now - state.lastPress > 750) {
+      state.count = 0;
+      if (textRef.current.length < 300) {
+        setDisplayText(text => text + chars[0]);
+      }
+    } else {
+      state.count = (state.count + 1) % chars.length;
+      setDisplayText(text => text.slice(0, -1) + chars[state.count]);
     }
-  };
+    
+    state.lastKey = key;
+    state.lastPress = now;
+    
+    // Ultra-short vibration
+    if (navigator.vibrate) navigator.vibrate(5);
+  }, []);
 
-  const handleDelete = () => {
-    setDisplayText(text => text.slice(0, -1));
-    if (navigator.vibrate) navigator.vibrate(10);
-  };
-
-  const toggleMode = () => {
-    setMode(mode => mode === 'ABC' ? '123' : 'ABC');
-    if (navigator.vibrate) navigator.vibrate(10);
-  };
-
-  const handlePost = async () => {
-    if (!displayText.trim()) return;
-    setIsPosting(true);
-    try {
-      await onPost(displayText);
-      setDisplayText('');
-    } finally {
-      setIsPosting(false);
-    }
-  };
-
-  const Button = ({ children, onPress, className = "" }) => (
+  const Button = ({ children, onPress }) => (
     <button
-      onTouchStart={(e) => {
+      onPointerDown={(e) => {
         e.preventDefault();
         onPress();
       }}
-      onClick={onPress}
-      className={`active:bg-gray-500 p-4 rounded-lg text-center select-none 
-        touch-manipulation bg-gray-300 ${className}`}
+      className="bg-gray-300 active:bg-gray-500 p-4 rounded-lg text-center select-none"
       style={{
         WebkitTapHighlightColor: 'transparent',
         touchAction: 'manipulation',
         userSelect: 'none',
-        WebkitUserSelect: 'none'
+        WebkitUserSelect: 'none',
+        msUserSelect: 'none',
+        MozUserSelect: 'none'
       }}
     >
       {children}
@@ -93,7 +97,10 @@ function T9KeyPad({ onPost }) {
           </Button>
         ))}
         
-        <Button onPress={toggleMode}>
+        <Button onPress={() => {
+          setMode(m => m === 'ABC' ? '123' : 'ABC');
+          if (navigator.vibrate) navigator.vibrate(5);
+        }}>
           <div className="text-xl">*</div>
         </Button>
         
@@ -102,17 +109,31 @@ function T9KeyPad({ onPost }) {
           <div className="text-xs">space</div>
         </Button>
         
-        <Button onPress={handleDelete}>
+        <Button onPress={() => {
+          setDisplayText(t => t.slice(0, -1));
+          if (navigator.vibrate) navigator.vibrate(5);
+        }}>
           <div className="text-xl">#</div>
         </Button>
       </div>
 
-      <Button 
-        onPress={handlePost}
-        className="w-full mt-4 bg-blue-500 text-white"
+      <button
+        onClick={async () => {
+          if (!displayText.trim() || isPosting) return;
+          setIsPosting(true);
+          try {
+            await onPost(displayText);
+            setDisplayText('');
+          } finally {
+            setIsPosting(false);
+          }
+        }}
+        className="w-full mt-4 p-4 rounded-lg bg-blue-500 text-white text-lg font-medium
+          disabled:bg-gray-400 active:bg-blue-700"
+        disabled={isPosting || !displayText.trim()}
       >
         {isPosting ? 'Posting...' : 'Post to BlueSky'}
-      </Button>
+      </button>
     </div>
   );
 }
