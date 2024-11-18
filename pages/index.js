@@ -1,16 +1,21 @@
 function T9KeyPad({ onPost }) {
-  const [isPosting, setIsPosting] = useState(false);
   const containerRef = useRef();
 
   useEffect(() => {
-    // Pure JS implementation
     const container = containerRef.current;
     if (!container) return;
 
-    let display, counter;
     let text = '';
     let lastKey = null;
     let lastIndex = -1;
+
+    // Define key positions - we'll use this to determine which key was pressed
+    const keyPositions = [
+      ['1', '2', '3'],
+      ['4', '5', '6'],
+      ['7', '8', '9'],
+      ['*', '0', '#']
+    ];
 
     const keyMappings = {
       '1': ['.', ',', '!', '1'],
@@ -25,7 +30,7 @@ function T9KeyPad({ onPost }) {
       '0': [' ', '0']
     };
 
-    // Create UI
+    // Create bare minimum UI structure
     container.innerHTML = `
       <div class="w-11/12 max-w-sm mx-auto bg-gray-200 rounded-lg p-4 shadow-xl select-none">
         <div class="bg-green-800 p-3 rounded-lg mb-4">
@@ -34,24 +39,24 @@ function T9KeyPad({ onPost }) {
           </div>
           <div id="counter" class="text-right text-sm mt-1 text-green-400">300</div>
         </div>
-        <div id="keypad" class="grid grid-cols-3 gap-2"></div>
+        <div id="touchSurface" class="relative" style="touch-action:none">
+          <div id="keypad" class="grid grid-cols-3 gap-2 pointer-events-none"></div>
+        </div>
         <button id="post" class="w-full mt-4 p-4 rounded-lg bg-blue-500 text-white text-lg text-center">
           Post to BlueSky
         </button>
       </div>
     `;
 
-    display = container.querySelector('#display');
-    counter = container.querySelector('#counter');
+    const display = container.querySelector('#display');
+    const counter = container.querySelector('#counter');
+    const touchSurface = container.querySelector('#touchSurface');
     const keypad = container.querySelector('#keypad');
-    const postButton = container.querySelector('#post');
-
-    // Create keypad
-    const keys = [...Array(9)].map((_, i) => i + 1).concat(['*', 0, '#']);
-    keys.forEach(key => {
+    
+    // Set up visual keypad (no event handlers on individual buttons)
+    keyPositions.flat().forEach(key => {
       const btn = document.createElement('div');
-      btn.className = 'bg-gray-300 active:bg-gray-400 rounded-lg text-center p-4';
-      btn.setAttribute('data-key', key);
+      btn.className = 'bg-gray-300 rounded-lg text-center p-4';
       if (keyMappings[key]) {
         btn.innerHTML = `
           <div class="text-xl font-bold">${key}</div>
@@ -60,16 +65,38 @@ function T9KeyPad({ onPost }) {
       } else {
         btn.innerHTML = `<div class="text-xl">${key}</div>`;
       }
-      btn.style.cssText = 'touch-action: none; -webkit-user-select: none; user-select: none;';
       keypad.appendChild(btn);
     });
 
-    // Direct touch handler
-    function handleTouch(e) {
-      const key = e.target.closest('[data-key]')?.getAttribute('data-key');
-      if (!key) return;
+    // Get key based on touch coordinates
+    function getKeyFromTouch(touch) {
+      const rect = touchSurface.getBoundingClientRect();
+      const x = touch.clientX - rect.left;
+      const y = touch.clientY - rect.top;
       
+      const colWidth = rect.width / 3;
+      const rowHeight = rect.height / 4;
+      
+      const col = Math.floor(x / colWidth);
+      const row = Math.floor(y / rowHeight);
+      
+      return keyPositions[row]?.[col];
+    }
+
+    // Single touch handler for entire surface
+    function handleTouch(e) {
       e.preventDefault();
+      
+      const key = getKeyFromTouch(e.touches[0]);
+      if (!key) return;
+
+      // Visual feedback for the touched key
+      const buttons = keypad.children;
+      const index = keyPositions.flat().indexOf(key);
+      if (index >= 0) {
+        buttons[index].classList.add('bg-gray-400');
+        setTimeout(() => buttons[index].classList.remove('bg-gray-400'), 100);
+      }
 
       if (key === '*' || key === '#') {
         if (text.length > 0) {
@@ -94,12 +121,16 @@ function T9KeyPad({ onPost }) {
       navigator?.vibrate?.(1);
     }
 
-    // Attach handlers at the lowest level
-    container.addEventListener('touchstart', handleTouch, {capture: true, passive: false});
+    // Attach single touch handler to surface
+    touchSurface.addEventListener('touchstart', handleTouch, {passive: false});
     
-    postButton.addEventListener('click', async () => {
-      if (!text.trim() || isPosting) return;
-      setIsPosting(true);
+    // Prevent any default touch behaviors
+    container.addEventListener('touchmove', e => e.preventDefault(), {passive: false});
+    container.addEventListener('touchend', e => e.preventDefault(), {passive: false});
+
+    // Handle posting
+    container.querySelector('#post').addEventListener('click', async () => {
+      if (!text.trim()) return;
       try {
         await onPost(text);
         text = '';
@@ -107,19 +138,15 @@ function T9KeyPad({ onPost }) {
         lastIndex = -1;
         display.textContent = 'Type your post...';
         counter.textContent = '300';
-      } finally {
-        setIsPosting(false);
+      } catch (error) {
+        console.error(error);
       }
     });
-
-    // Prevent default touch behaviors
-    container.addEventListener('touchmove', e => e.preventDefault(), {passive: false});
-    container.addEventListener('touchend', e => e.preventDefault(), {passive: false});
 
     return () => {
       container.innerHTML = '';
     };
-  }, [isPosting, onPost]);
+  }, [onPost]);
 
   return <div ref={containerRef} />;
 }
