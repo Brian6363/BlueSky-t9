@@ -139,7 +139,6 @@ export default function T9KeyPad({ agent }) {
         <div id="keypad" class="grid grid-cols-3 gap-2"></div>
       </div>
     `;
-
 const display = container.querySelector('#display');
     const counter = container.querySelector('#counter');
     const keypad = container.querySelector('#keypad');
@@ -229,7 +228,7 @@ const display = container.querySelector('#display');
         keypad.appendChild(btn);
     });
 
-async function handleSend() {
+    async function handleSend() {
       if (!text.trim() || gameActive) {
         addDebugLog('No text to send');
         return;
@@ -309,7 +308,7 @@ ${profile.data.description || ''}
       gameLoopRef.current = setInterval(updateSnake, 150);
     });
 
-upBtn?.addEventListener('click', () => {
+    upBtn?.addEventListener('click', () => {
       if (gameActive && snakeRef.current.direction[1] !== 1) {
         snakeRef.current.direction = [0, -1];
       }
