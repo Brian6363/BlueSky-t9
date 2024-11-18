@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { BskyAgent } from '@atproto/api';
 
 // T9KeyPad component
-function T9KeyPad({ onPost }) {
+function T9KeyPad({ onPost, agent }) {  // Added agent prop
   const containerRef = useRef();
 
   useEffect(() => {
@@ -12,10 +12,11 @@ function T9KeyPad({ onPost }) {
     let text = '';
     let lastKey = null;
     let debugLog = [];
-    let debugInfo = null;  // Will be set after DOM creation
+    let debugInfo = null;
 
     function addDebugLog(message) {
-      debugLog.unshift(message);
+      const timestamp = new Date().toLocaleTimeString();
+      debugLog.unshift(`${timestamp}: ${message}`);
       debugLog = debugLog.slice(0, 3);
       if (debugInfo) {
         debugInfo.textContent = debugLog.join('\n');
@@ -25,8 +26,8 @@ function T9KeyPad({ onPost }) {
     container.innerHTML = `
       <div class="w-64 mx-auto bg-gray-600 rounded-3xl p-4 shadow-xl select-none"
            style="background: linear-gradient(145deg, #666666, #4a4a4a);">
-        <div class="mb-2 p-1 bg-black rounded text-[8px]">
-          <div class="text-yellow-400 font-mono" id="debugInfo"></div>
+        <div class="mb-2 p-1 bg-black rounded">
+          <div class="text-yellow-400 font-mono text-[8px] whitespace-pre-line" id="debugInfo"></div>
         </div>
 
         <div class="bg-[#b5c9a4] p-3 rounded mb-4 shadow-inner"
@@ -87,7 +88,7 @@ function T9KeyPad({ onPost }) {
     const keypad = container.querySelector('#keypad');
     const sendBtn = container.querySelector('#sendBtn');
     const clearBtn = container.querySelector('#clearBtn');
-    debugInfo = container.querySelector('#debugInfo');  // Set debugInfo after DOM creation
+    debugInfo = container.querySelector('#debugInfo');
 
     const keyMappings = {
       '1': ['.', ',', '!', '1'],
@@ -164,25 +165,37 @@ function T9KeyPad({ onPost }) {
     });
 
     async function handleSend() {
-      addDebugLog('Send pressed: ' + new Date().toLocaleTimeString());
-      addDebugLog('Text length: ' + text.length);
-      
       if (!text.trim()) {
-        addDebugLog('Error: No text to send');
+        addDebugLog('No text to send');
         return;
       }
 
+      addDebugLog('Sending: ' + text);
       sendBtn.style.backgroundColor = '#1c6a13';
-      
+
       try {
-        await onPost(text);
-        text = '';
-        display.textContent = 'Type your post...';
-        counter.textContent = '300';
-        lastKey = null;
-        addDebugLog('Success: Text sent');
+        if (!agent.session) {
+          addDebugLog('Error: Not logged in');
+          return;
+        }
+
+        // Create the post
+        const response = await agent.post({
+          text: text,
+          createdAt: new Date().toISOString()
+        });
+
+        if (response.uri) {
+          addDebugLog('Posted successfully!');
+          text = '';
+          display.textContent = 'Type your post...';
+          counter.textContent = '300';
+          lastKey = null;
+        } else {
+          addDebugLog('Error: No post URI');
+        }
       } catch (error) {
-        addDebugLog('Error: ' + error.message);
+        addDebugLog('Post error: ' + (error.message || 'Unknown error'));
       } finally {
         setTimeout(() => {
           sendBtn.style.backgroundColor = '#2c8a23';
@@ -190,28 +203,36 @@ function T9KeyPad({ onPost }) {
       }
     }
 
-    sendBtn.addEventListener('click', handleSend);
+    // Handle send button
+    sendBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      handleSend();
+    });
+
     sendBtn.addEventListener('touchstart', (e) => {
       e.preventDefault();
       handleSend();
     }, { passive: false });
 
+    // Handle clear button
     clearBtn.addEventListener('click', () => {
       text = '';
       display.textContent = 'Type your post...';
       counter.textContent = '300';
       lastKey = null;
-      addDebugLog('Cleared text');
+      addDebugLog('Text cleared');
     });
 
     container.addEventListener('touchmove', e => e.preventDefault(), { passive: false });
     container.addEventListener('touchend', e => e.preventDefault(), { passive: false });
 
+    // Initial debug message
     addDebugLog('T9 Ready');
+
     return () => {
       container.innerHTML = '';
     };
-  }, [onPost]);
+  }, [onPost, agent]);
 
   return <div ref={containerRef} />;
 }
@@ -222,8 +243,7 @@ export default function Home() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
-
-  const agent = new BskyAgent({ service: 'https://bsky.social/xrpc/' });
+  const [agent] = useState(() => new BskyAgent({ service: 'https://bsky.social/xrpc/' }));
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -236,19 +256,6 @@ export default function Home() {
       setError('');
     } catch (err) {
       setError('Login failed. Please check your credentials.');
-    }
-  };
-
-  const handlePost = async (text) => {
-    try {
-      await agent.post({
-        text: text,
-        createdAt: new Date().toISOString()
-      });
-      return true;
-    } catch (err) {
-      console.error(err);
-      return false;
     }
   };
 
@@ -287,5 +294,5 @@ export default function Home() {
     );
   }
 
-  return <T9KeyPad onPost={handlePost} />;
+  return <T9KeyPad agent={agent} />;
 }
