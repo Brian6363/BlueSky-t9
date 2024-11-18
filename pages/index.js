@@ -6,10 +6,9 @@ function T9KeyPad({ onPost }) {
     if (!container) return;
 
     let text = '';
-    const touchState = {
+    const currentKey = {
       key: null,
-      count: 0,
-      lastTouch: 0
+      index: -1
     };
 
     const keyMappings = {
@@ -44,43 +43,38 @@ function T9KeyPad({ onPost }) {
     const counter = container.querySelector('#counter');
     const keypad = container.querySelector('#keypad');
 
-    // Update display synchronously
     function updateDisplay(newText) {
       text = newText;
       display.textContent = text || 'Type your post...';
       counter.textContent = 300 - text.length;
     }
 
-    // Process key press immediately
     function processKey(key) {
-      const now = performance.now();
-
       if (key === '*' || key === '#') {
         updateDisplay(text.slice(0, -1));
-        touchState.key = null;
-        touchState.count = 0;
+        currentKey.key = null;
         return;
       }
 
       const chars = keyMappings[key];
       if (!chars) return;
 
-      // Always process the touch, but check if it's a quick repeat
-      if (key === touchState.key && (now - touchState.lastTouch) < 250) {
-        touchState.count = (touchState.count + 1) % chars.length;
-        updateDisplay(text.slice(0, -1) + chars[touchState.count]);
+      // If same key, immediately cycle to next character
+      if (currentKey.key === key) {
+        currentKey.index = (currentKey.index + 1) % chars.length;
+        updateDisplay(text.slice(0, -1) + chars[currentKey.index]);
       } else {
+        // New key pressed - start at first character
         if (text.length < 300) {
-          touchState.key = key;
-          touchState.count = 0;
+          currentKey.key = key;
+          currentKey.index = 0;
           updateDisplay(text + chars[0]);
         }
       }
       
-      touchState.lastTouch = now;
+      navigator?.vibrate?.(1);
     }
 
-    // Create buttons with direct touch handling
     [...Array(9)].map((_, i) => i + 1).concat(['*', '0', '#']).forEach(key => {
       const btn = document.createElement('div');
       btn.className = 'bg-gray-300 active:bg-gray-400 rounded-lg text-center p-4';
@@ -94,30 +88,26 @@ function T9KeyPad({ onPost }) {
         btn.innerHTML = `<div class="text-xl">${key}</div>`;
       }
 
-      // Direct touch handler on each button
       btn.addEventListener('touchstart', (e) => {
         e.preventDefault();
         processKey(key);
-        navigator?.vibrate?.(1);
       }, { passive: false });
 
       keypad.appendChild(btn);
     });
 
-    // Handle posting
     container.querySelector('#post').addEventListener('click', async () => {
       if (!text.trim()) return;
       try {
         await onPost(text);
         updateDisplay('');
-        touchState.key = null;
-        touchState.count = 0;
+        currentKey.key = null;
+        currentKey.index = -1;
       } catch (error) {
         console.error(error);
       }
     });
 
-    // Prevent default touch behaviors
     container.addEventListener('touchmove', e => e.preventDefault(), { passive: false });
     container.addEventListener('touchend', e => e.preventDefault(), { passive: false });
 
