@@ -1,5 +1,6 @@
 function T9KeyPad({ onPost }) {
   const containerRef = useRef();
+  const VERSION = "v1.5.0"; // Visible version number
 
   useEffect(() => {
     const container = containerRef.current;
@@ -25,6 +26,10 @@ function T9KeyPad({ onPost }) {
 
     container.innerHTML = `
       <div class="w-11/12 max-w-sm mx-auto bg-gray-200 rounded-lg p-4 shadow-xl select-none">
+        <div class="flex justify-between items-center mb-2">
+          <span class="text-xs text-gray-500">${VERSION}</span>
+          <span id="debug" class="text-xs text-gray-500"></span>
+        </div>
         <div class="bg-green-800 p-3 rounded-lg mb-4">
           <div class="bg-green-900 min-h-24 p-2 rounded">
             <p id="display" class="text-green-400 break-words text-lg">Type your post...</p>
@@ -41,6 +46,7 @@ function T9KeyPad({ onPost }) {
     const display = container.querySelector('#display');
     const counter = container.querySelector('#counter');
     const keypad = container.querySelector('#keypad');
+    const debug = container.querySelector('#debug');
 
     function updateDisplay(newText) {
       text = newText;
@@ -48,28 +54,33 @@ function T9KeyPad({ onPost }) {
       counter.textContent = 300 - text.length;
     }
 
-    function handleKey(key, chars) {
+    function handleKey(key) {
       clearTimeout(tapTimeout);
+      const chars = keyMappings[key];
       
-      // If it's a new key, reset count and add first letter
+      // Update debug info
+      debug.textContent = `Key: ${key}, Taps: ${tapCount + 1}`;
+
       if (key !== lastKey) {
+        // New key pressed
         tapCount = 0;
         if (text.length < 300) {
           updateDisplay(text + chars[0]);
         }
       } else {
-        // Same key - update current letter based on tap count
+        // Same key - instant cycling
         tapCount = (tapCount + 1) % chars.length;
         updateDisplay(text.slice(0, -1) + chars[tapCount]);
       }
       
       lastKey = key;
-
-      // Reset after very short delay
+      
+      // Very short reset timeout
       tapTimeout = setTimeout(() => {
         lastKey = null;
         tapCount = 0;
-      }, 400);
+        debug.textContent = 'Reset';
+      }, 300);
     }
 
     function createButton(key) {
@@ -85,7 +96,7 @@ function T9KeyPad({ onPost }) {
         btn.innerHTML = `<div class="text-xl">${key}</div>`;
       }
 
-      // Handle both touch and click events for testing
+      // Handle both touch and mouse events
       function handlePress(e) {
         e.preventDefault();
         if (key === '*' || key === '#') {
@@ -93,11 +104,12 @@ function T9KeyPad({ onPost }) {
           lastKey = null;
           tapCount = 0;
         } else if (keyMappings[key]) {
-          handleKey(key, keyMappings[key]);
+          handleKey(key);
         }
         navigator?.vibrate?.(1);
       }
 
+      // Using raw event listeners for maximum speed
       btn.addEventListener('touchstart', handlePress, { passive: false });
       btn.addEventListener('mousedown', handlePress);
       
