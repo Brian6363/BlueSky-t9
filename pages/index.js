@@ -2,6 +2,8 @@ import React, { useEffect, useRef } from 'react';
 
 function T9KeyPad({ onPost }) {
   const containerRef = useRef();
+  
+  console.log('T9KeyPad mounting, onPost available:', !!onPost);
 
   useEffect(() => {
     const container = containerRef.current;
@@ -41,7 +43,6 @@ function T9KeyPad({ onPost }) {
           <div id="counter" class="text-right text-xs mt-1 text-[#2c3a23]">300</div>
         </div>
 
-        <!-- Function Buttons -->
         <div class="flex justify-between mb-4">
           <button class="bg-gradient-to-b from-gray-700 to-gray-800 w-16 h-8 rounded-sm text-gray-200 text-xs shadow-lg active:shadow-sm active:translate-y-px transition-all duration-100">
             Menu
@@ -51,19 +52,15 @@ function T9KeyPad({ onPost }) {
           </button>
         </div>
 
-        <!-- Navigation Pad -->
         <div class="relative h-24 mb-4 flex items-center justify-center">
           <div class="relative w-24 h-24">
-            <!-- Background Cross -->
             <div class="absolute inset-0 bg-gradient-to-b from-gray-700 to-gray-800 rounded-sm"
                  style="clip-path: polygon(37.5% 0, 62.5% 0, 62.5% 37.5%, 100% 37.5%, 100% 62.5%, 62.5% 62.5%, 62.5% 100%, 37.5% 100%, 37.5% 62.5%, 0 62.5%, 0 37.5%, 37.5% 37.5%);">
             </div>
             
-            <!-- Center Button -->
             <button class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-8 h-8 rounded-sm bg-gradient-to-b from-gray-600 to-gray-700 shadow-md">
             </button>
 
-            <!-- D-pad Buttons -->
             <button class="absolute top-1 left-1/2 -translate-x-1/2 w-8 h-6 bg-gradient-to-b from-gray-600 to-gray-700 rounded-sm shadow-md active:shadow-sm active:translate-y-px"></button>
             <button class="absolute bottom-1 left-1/2 -translate-x-1/2 w-8 h-6 bg-gradient-to-b from-gray-600 to-gray-700 rounded-sm shadow-md active:shadow-sm active:translate-y-px"></button>
             <button class="absolute left-1 top-1/2 -translate-y-1/2 w-6 h-8 bg-gradient-to-b from-gray-600 to-gray-700 rounded-sm shadow-md active:shadow-sm active:translate-x-px"></button>
@@ -71,21 +68,15 @@ function T9KeyPad({ onPost }) {
           </div>
         </div>
 
-        <!-- Action Buttons -->
         <div class="flex justify-between mb-4">
-          <button id="sendBtn" 
-                  onclick="this.classList.add('translate-y-px', 'shadow-sm'); setTimeout(() => this.classList.remove('translate-y-px', 'shadow-sm'), 100)"
-                  class="bg-[#2c8a23] w-16 h-8 rounded-sm text-white text-xs shadow-lg active:shadow-sm active:translate-y-px transition-all duration-100">
+          <button id="sendBtn" class="bg-[#2c8a23] w-16 h-8 rounded-sm text-white text-xs shadow-lg active:shadow-sm active:translate-y-px transition-all duration-100">
             Send
           </button>
-          <button id="clearBtn" 
-                  onclick="this.classList.add('translate-y-px', 'shadow-sm'); setTimeout(() => this.classList.remove('translate-y-px', 'shadow-sm'), 100)"
-                  class="bg-[#8a2323] w-16 h-8 rounded-sm text-white text-xs shadow-lg active:shadow-sm active:translate-y-px transition-all duration-100">
+          <button id="clearBtn" class="bg-[#8a2323] w-16 h-8 rounded-sm text-white text-xs shadow-lg active:shadow-sm active:translate-y-px transition-all duration-100">
             Clear
           </button>
         </div>
 
-        <!-- Keypad -->
         <div id="keypad" class="grid grid-cols-3 gap-2"></div>
       </div>
     `;
@@ -157,37 +148,52 @@ function T9KeyPad({ onPost }) {
         keypad.appendChild(btn);
     });
 
-    // Send button handler
-    const handleSend = async (e) => {
-      e.preventDefault();
-      if (!text.trim() || !onPost) return;
+    // Debug send handler
+    function handleSend() {
+      console.log('Send button pressed');
+      console.log('Current text:', text);
+      console.log('onPost available:', !!onPost);
 
+      if (!text.trim()) {
+        console.log('No text to send');
+        return;
+      }
+
+      // Visual feedback
+      sendBtn.style.backgroundColor = '#1c6a13';
+      
       try {
-        await onPost(text);
+        console.log('Attempting to send text:', text);
+        onPost(text);
+        
+        // Clear input after successful send
         text = '';
         display.textContent = 'Type your post...';
         counter.textContent = '300';
         lastKey = null;
+        console.log('Text sent and cleared');
       } catch (error) {
-        console.error(error);
+        console.error('Error sending text:', error);
+      } finally {
+        // Reset button color
+        setTimeout(() => {
+          sendBtn.style.backgroundColor = '#2c8a23';
+        }, 100);
       }
-    };
+    }
 
-    // Attach send handler to both click and touch
     sendBtn.addEventListener('click', handleSend);
-    sendBtn.addEventListener('touchstart', handleSend, { passive: false });
-
-    // Clear button handler
-    const handleClear = (e) => {
+    sendBtn.addEventListener('touchstart', (e) => {
       e.preventDefault();
+      handleSend();
+    }, { passive: false });
+
+    clearBtn.addEventListener('click', () => {
       text = '';
       display.textContent = 'Type your post...';
       counter.textContent = '300';
       lastKey = null;
-    };
-
-    clearBtn.addEventListener('click', handleClear);
-    clearBtn.addEventListener('touchstart', handleClear, { passive: false });
+    });
 
     container.addEventListener('touchmove', e => e.preventDefault(), { passive: false });
     container.addEventListener('touchend', e => e.preventDefault(), { passive: false });
