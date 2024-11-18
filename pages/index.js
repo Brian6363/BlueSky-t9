@@ -1,8 +1,9 @@
+import React, { useEffect, useRef } from 'react';
+
 // VERSION 3.0 - PURPLE - DEBUG
 function T9KeyPad({ onPost }) {
   const containerRef = useRef();
   
-  // Debug log to console
   console.log('T9KeyPad DEBUG VERSION 3.0 initializing');
 
   useEffect(() => {
@@ -131,7 +132,6 @@ function T9KeyPad({ onPost }) {
     container.addEventListener('touchmove', e => e.preventDefault(), { passive: false });
     container.addEventListener('touchend', e => e.preventDefault(), { passive: false });
 
-    // Debug initialization complete
     console.log('T9KeyPad initialization complete');
     updateDebug('Initialized', 'ready');
 
