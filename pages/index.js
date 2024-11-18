@@ -6,10 +6,9 @@ function T9KeyPad({ onPost }) {
     if (!container) return;
 
     let text = '';
-    const currentKey = {
-      key: null,
-      index: -1
-    };
+    let lastKey = null;
+    let tapCount = 0;
+    let tapTimeout = null;
 
     const keyMappings = {
       '1': ['.', ',', '!', '1'],
@@ -49,33 +48,31 @@ function T9KeyPad({ onPost }) {
       counter.textContent = 300 - text.length;
     }
 
-    function processKey(key) {
-      if (key === '*' || key === '#') {
-        updateDisplay(text.slice(0, -1));
-        currentKey.key = null;
-        return;
-      }
-
-      const chars = keyMappings[key];
-      if (!chars) return;
-
-      // If same key, immediately cycle to next character
-      if (currentKey.key === key) {
-        currentKey.index = (currentKey.index + 1) % chars.length;
-        updateDisplay(text.slice(0, -1) + chars[currentKey.index]);
-      } else {
-        // New key pressed - start at first character
+    function handleKey(key, chars) {
+      clearTimeout(tapTimeout);
+      
+      // If it's a new key, reset count and add first letter
+      if (key !== lastKey) {
+        tapCount = 0;
         if (text.length < 300) {
-          currentKey.key = key;
-          currentKey.index = 0;
           updateDisplay(text + chars[0]);
         }
+      } else {
+        // Same key - update current letter based on tap count
+        tapCount = (tapCount + 1) % chars.length;
+        updateDisplay(text.slice(0, -1) + chars[tapCount]);
       }
       
-      navigator?.vibrate?.(1);
+      lastKey = key;
+
+      // Reset after very short delay
+      tapTimeout = setTimeout(() => {
+        lastKey = null;
+        tapCount = 0;
+      }, 400);
     }
 
-    [...Array(9)].map((_, i) => i + 1).concat(['*', '0', '#']).forEach(key => {
+    function createButton(key) {
       const btn = document.createElement('div');
       btn.className = 'bg-gray-300 active:bg-gray-400 rounded-lg text-center p-4';
       
@@ -88,30 +85,51 @@ function T9KeyPad({ onPost }) {
         btn.innerHTML = `<div class="text-xl">${key}</div>`;
       }
 
-      btn.addEventListener('touchstart', (e) => {
+      // Handle both touch and click events for testing
+      function handlePress(e) {
         e.preventDefault();
-        processKey(key);
-      }, { passive: false });
+        if (key === '*' || key === '#') {
+          updateDisplay(text.slice(0, -1));
+          lastKey = null;
+          tapCount = 0;
+        } else if (keyMappings[key]) {
+          handleKey(key, keyMappings[key]);
+        }
+        navigator?.vibrate?.(1);
+      }
 
-      keypad.appendChild(btn);
-    });
+      btn.addEventListener('touchstart', handlePress, { passive: false });
+      btn.addEventListener('mousedown', handlePress);
+      
+      return btn;
+    }
 
+    // Create keypad
+    [...Array(9)].map((_, i) => i + 1)
+      .concat(['*', '0', '#'])
+      .forEach(key => {
+        keypad.appendChild(createButton(key));
+      });
+
+    // Post button
     container.querySelector('#post').addEventListener('click', async () => {
       if (!text.trim()) return;
       try {
         await onPost(text);
         updateDisplay('');
-        currentKey.key = null;
-        currentKey.index = -1;
+        lastKey = null;
+        tapCount = 0;
       } catch (error) {
         console.error(error);
       }
     });
 
+    // Prevent default touch behaviors
     container.addEventListener('touchmove', e => e.preventDefault(), { passive: false });
     container.addEventListener('touchend', e => e.preventDefault(), { passive: false });
 
     return () => {
+      clearTimeout(tapTimeout);
       container.innerHTML = '';
     };
   }, [onPost]);
