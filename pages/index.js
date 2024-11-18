@@ -1,16 +1,13 @@
 function T9KeyPad({ onPost }) {
   const [displayText, setDisplayText] = useState('');
-  const [mode, setMode] = useState('ABC');
   const [isPosting, setIsPosting] = useState(false);
-  
-  // Use refs for instant updates
   const textRef = useRef(displayText);
   textRef.current = displayText;
   
-  const keyState = useRef({
-    lastKey: null,
-    lastPress: 0,
-    count: 0
+  const lastPress = useRef({
+    key: null,
+    time: 0,
+    count: -1
   });
 
   const keyMappings = {
@@ -26,56 +23,52 @@ function T9KeyPad({ onPost }) {
     '0': [' ', '0']
   };
 
-  const handleKeyPress = useCallback((key) => {
+  const handleKey = useCallback((key) => {
     const now = Date.now();
-    const state = keyState.current;
+    const state = lastPress.current;
     const chars = keyMappings[key];
     
-    // Direct state mutation for instant feedback
-    if (state.lastKey !== key || now - state.lastPress > 750) {
+    // Ultra-fast multi-tap logic
+    if (state.key === key && now - state.time < 300) {
+      state.count = (state.count + 1) % chars.length;
+      setDisplayText(prev => prev.slice(0, -1) + chars[state.count]);
+    } else {
       state.count = 0;
       if (textRef.current.length < 300) {
-        setDisplayText(text => text + chars[0]);
+        setDisplayText(prev => prev + chars[0]);
       }
-    } else {
-      state.count = (state.count + 1) % chars.length;
-      setDisplayText(text => text.slice(0, -1) + chars[state.count]);
     }
     
-    state.lastKey = key;
-    state.lastPress = now;
+    state.key = key;
+    state.time = now;
     
-    // Ultra-short vibration
-    if (navigator.vibrate) navigator.vibrate(5);
+    // Minimal vibration
+    navigator?.vibrate?.(1);
   }, []);
 
-  const Button = ({ children, onPress }) => (
+  const T9Button = memo(({ value, chars }) => (
     <button
-      onPointerDown={(e) => {
+      onTouchStart={(e) => {
         e.preventDefault();
-        onPress();
+        handleKey(value);
       }}
-      className="bg-gray-300 active:bg-gray-500 p-4 rounded-lg text-center select-none"
+      className="bg-gray-300 active:bg-gray-400 rounded-lg text-center p-4
+                 touch-manipulation select-none"
       style={{
         WebkitTapHighlightColor: 'transparent',
         touchAction: 'manipulation',
-        userSelect: 'none',
-        WebkitUserSelect: 'none',
-        msUserSelect: 'none',
-        MozUserSelect: 'none'
+        userSelect: 'none'
       }}
     >
-      {children}
+      <div className="text-xl font-bold">{value}</div>
+      <div className="text-xs">{chars.join(' ')}</div>
     </button>
-  );
+  ));
 
   return (
     <div className="w-11/12 max-w-sm mx-auto bg-gray-200 rounded-lg p-4 shadow-xl">
+      {/* Display */}
       <div className="bg-green-800 p-3 rounded-lg mb-4">
-        <div className="flex justify-between text-green-400 text-xs mb-1">
-          <span>BlueSky</span>
-          <span>{mode}</span>
-        </div>
         <div className="bg-green-900 min-h-24 p-2 rounded">
           <p className="text-green-400 break-words text-lg">
             {displayText || 'Type your post...'}
@@ -86,39 +79,45 @@ function T9KeyPad({ onPost }) {
         </div>
       </div>
 
+      {/* Keypad */}
       <div className="grid grid-cols-3 gap-2">
         {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((num) => (
-          <Button
-            key={num}
-            onPress={() => handleKeyPress(num.toString())}
-          >
-            <div className="text-xl font-bold">{num}</div>
-            <div className="text-xs">{keyMappings[num].join(' ')}</div>
-          </Button>
+          <T9Button 
+            key={num} 
+            value={num.toString()} 
+            chars={keyMappings[num.toString()]}
+          />
         ))}
         
-        <Button onPress={() => {
-          setMode(m => m === 'ABC' ? '123' : 'ABC');
-          if (navigator.vibrate) navigator.vibrate(5);
-        }}>
+        <button
+          onTouchStart={(e) => {
+            e.preventDefault();
+            setDisplayText(t => t.slice(0, -1));
+            navigator?.vibrate?.(1);
+          }}
+          className="bg-gray-300 active:bg-gray-400 rounded-lg text-center p-4"
+        >
           <div className="text-xl">*</div>
-        </Button>
+        </button>
         
-        <Button onPress={() => handleKeyPress('0')}>
-          <div className="text-xl font-bold">0</div>
-          <div className="text-xs">space</div>
-        </Button>
+        <T9Button value="0" chars={keyMappings['0']} />
         
-        <Button onPress={() => {
-          setDisplayText(t => t.slice(0, -1));
-          if (navigator.vibrate) navigator.vibrate(5);
-        }}>
+        <button
+          onTouchStart={(e) => {
+            e.preventDefault();
+            setDisplayText(t => t.slice(0, -1));
+            navigator?.vibrate?.(1);
+          }}
+          className="bg-gray-300 active:bg-gray-400 rounded-lg text-center p-4"
+        >
           <div className="text-xl">#</div>
-        </Button>
+        </button>
       </div>
 
+      {/* Post Button */}
       <button
-        onClick={async () => {
+        onTouchStart={async (e) => {
+          e.preventDefault();
           if (!displayText.trim() || isPosting) return;
           setIsPosting(true);
           try {
@@ -128,8 +127,8 @@ function T9KeyPad({ onPost }) {
             setIsPosting(false);
           }
         }}
-        className="w-full mt-4 p-4 rounded-lg bg-blue-500 text-white text-lg font-medium
-          disabled:bg-gray-400 active:bg-blue-700"
+        className="w-full mt-4 p-4 rounded-lg bg-blue-500 text-white text-lg
+                   active:bg-blue-600 disabled:bg-gray-400"
         disabled={isPosting || !displayText.trim()}
       >
         {isPosting ? 'Posting...' : 'Post to BlueSky'}
