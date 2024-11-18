@@ -26,7 +26,6 @@ function T9KeyPad({ onPost }) {
     container.innerHTML = `
       <div class="w-64 mx-auto bg-gray-600 rounded-3xl p-4 shadow-xl select-none"
            style="background: linear-gradient(145deg, #666666, #4a4a4a);">
-        <!-- Screen -->
         <div class="bg-[#b5c9a4] p-3 rounded mb-4 shadow-inner"
              style="font-family: 'Courier New', monospace;">
           <div class="flex justify-between text-[#2c3a23] text-[10px] mb-1">
@@ -42,7 +41,6 @@ function T9KeyPad({ onPost }) {
           <div id="counter" class="text-right text-xs mt-1 text-[#2c3a23]">300</div>
         </div>
 
-        <!-- Function Buttons -->
         <div class="flex justify-between mb-4">
           <button class="bg-gradient-to-b from-gray-700 to-gray-800 w-16 h-8 rounded-sm text-gray-200 text-xs shadow-lg active:shadow-sm active:translate-y-px transition-all duration-100">
             Menu
@@ -52,29 +50,23 @@ function T9KeyPad({ onPost }) {
           </button>
         </div>
 
-        <!-- Navigation Cluster -->
         <div class="relative h-20 mb-4">
-          <!-- Center circle -->
           <div class="absolute inset-0 m-auto w-12 h-12 rounded-full bg-gradient-to-b from-gray-700 to-gray-800 shadow-lg"></div>
-          
-          <!-- Directional buttons -->
           <button class="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-6 bg-gradient-to-b from-gray-700 to-gray-800 rounded-sm shadow-lg"></button>
           <button class="absolute bottom-0 left-1/2 -translate-x-1/2 w-8 h-6 bg-gradient-to-b from-gray-700 to-gray-800 rounded-sm shadow-lg"></button>
           <button class="absolute left-0 top-1/2 -translate-y-1/2 w-6 h-8 bg-gradient-to-b from-gray-700 to-gray-800 rounded-sm shadow-lg"></button>
           <button class="absolute right-0 top-1/2 -translate-y-1/2 w-6 h-8 bg-gradient-to-b from-gray-700 to-gray-800 rounded-sm shadow-lg"></button>
         </div>
 
-        <!-- Action Buttons -->
         <div class="flex justify-between mb-4">
-          <button class="bg-[#2c8a23] w-16 h-8 rounded-sm text-white text-xs shadow-lg active:shadow-sm active:translate-y-px transition-all duration-100">
+          <button id="sendBtn" class="bg-[#2c8a23] w-16 h-8 rounded-sm text-white text-xs shadow-lg active:shadow-sm active:translate-y-px transition-all duration-100">
             Send
           </button>
-          <button class="bg-[#8a2323] w-16 h-8 rounded-sm text-white text-xs shadow-lg active:shadow-sm active:translate-y-px transition-all duration-100">
+          <button id="clearBtn" class="bg-[#8a2323] w-16 h-8 rounded-sm text-white text-xs shadow-lg active:shadow-sm active:translate-y-px transition-all duration-100">
             Clear
           </button>
         </div>
 
-        <!-- Keypad -->
         <div id="keypad" class="grid grid-cols-3 gap-2"></div>
       </div>
     `;
@@ -82,6 +74,8 @@ function T9KeyPad({ onPost }) {
     const display = container.querySelector('#display');
     const counter = container.querySelector('#counter');
     const keypad = container.querySelector('#keypad');
+    const sendBtn = container.querySelector('#sendBtn');
+    const clearBtn = container.querySelector('#clearBtn');
 
     function handleKey(key) {
       const chars = keyMappings[key];
@@ -144,8 +138,8 @@ function T9KeyPad({ onPost }) {
         keypad.appendChild(btn);
     });
 
-    // Handle send button
-    container.querySelector('button:has-text("Send")').addEventListener('click', async () => {
+    // Send button handler
+    sendBtn.addEventListener('click', async () => {
       if (!text.trim()) return;
       try {
         await onPost(text);
@@ -158,8 +152,8 @@ function T9KeyPad({ onPost }) {
       }
     });
 
-    // Handle clear button
-    container.querySelector('button:has-text("Clear")').addEventListener('click', () => {
+    // Clear button handler
+    clearBtn.addEventListener('click', () => {
       text = '';
       display.textContent = 'Type your post...';
       counter.textContent = '300';
