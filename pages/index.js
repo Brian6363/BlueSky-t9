@@ -1,14 +1,7 @@
 function T9KeyPad({ onPost }) {
   const [displayText, setDisplayText] = useState('');
   const [isPosting, setIsPosting] = useState(false);
-  const textRef = useRef(displayText);
-  textRef.current = displayText;
-  
-  const lastPress = useRef({
-    key: null,
-    time: 0,
-    count: -1
-  });
+  const lastKey = useRef({key: null, index: 0});
 
   const keyMappings = {
     '1': ['.', ',', '!', '1'],
@@ -24,27 +17,22 @@ function T9KeyPad({ onPost }) {
   };
 
   const handleKey = useCallback((key) => {
-    const now = Date.now();
-    const state = lastPress.current;
     const chars = keyMappings[key];
     
-    // Ultra-fast multi-tap logic
-    if (state.key === key && now - state.time < 300) {
-      state.count = (state.count + 1) % chars.length;
-      setDisplayText(prev => prev.slice(0, -1) + chars[state.count]);
+    if (lastKey.current.key === key) {
+      // Always cycle to next character for same key
+      lastKey.current.index = (lastKey.current.index + 1) % chars.length;
+      setDisplayText(prev => prev.slice(0, -1) + chars[lastKey.current.index]);
     } else {
-      state.count = 0;
-      if (textRef.current.length < 300) {
+      // New key pressed - add first character
+      if (displayText.length < 300) {
+        lastKey.current = { key, index: 0 };
         setDisplayText(prev => prev + chars[0]);
       }
     }
     
-    state.key = key;
-    state.time = now;
-    
-    // Minimal vibration
     navigator?.vibrate?.(1);
-  }, []);
+  }, [displayText.length]);
 
   const T9Button = memo(({ value, chars }) => (
     <button
@@ -67,7 +55,6 @@ function T9KeyPad({ onPost }) {
 
   return (
     <div className="w-11/12 max-w-sm mx-auto bg-gray-200 rounded-lg p-4 shadow-xl">
-      {/* Display */}
       <div className="bg-green-800 p-3 rounded-lg mb-4">
         <div className="bg-green-900 min-h-24 p-2 rounded">
           <p className="text-green-400 break-words text-lg">
@@ -79,7 +66,6 @@ function T9KeyPad({ onPost }) {
         </div>
       </div>
 
-      {/* Keypad */}
       <div className="grid grid-cols-3 gap-2">
         {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((num) => (
           <T9Button 
@@ -114,7 +100,6 @@ function T9KeyPad({ onPost }) {
         </button>
       </div>
 
-      {/* Post Button */}
       <button
         onTouchStart={async (e) => {
           e.preventDefault();
@@ -135,4 +120,4 @@ function T9KeyPad({ onPost }) {
       </button>
     </div>
   );
-}
+}s
