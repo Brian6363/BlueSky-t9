@@ -12,22 +12,23 @@ function T9KeyPad({ onPost }) {
     let text = '';
     let lastKey = null;
     let debugLog = [];
+    let debugInfo = null;  // Will be set after DOM creation
 
     function addDebugLog(message) {
       debugLog.unshift(message);
       debugLog = debugLog.slice(0, 3);
-      debugInfo?.textContent = debugLog.join('\n');
+      if (debugInfo) {
+        debugInfo.textContent = debugLog.join('\n');
+      }
     }
 
     container.innerHTML = `
       <div class="w-64 mx-auto bg-gray-600 rounded-3xl p-4 shadow-xl select-none"
            style="background: linear-gradient(145deg, #666666, #4a4a4a);">
-        <!-- Tiny Debug Panel -->
         <div class="mb-2 p-1 bg-black rounded text-[8px]">
           <div class="text-yellow-400 font-mono" id="debugInfo"></div>
         </div>
 
-        <!-- Nokia Screen -->
         <div class="bg-[#b5c9a4] p-3 rounded mb-4 shadow-inner"
              style="font-family: 'Courier New', monospace;">
           <div class="flex justify-between text-[#2c3a23] text-[10px] mb-1">
@@ -43,7 +44,6 @@ function T9KeyPad({ onPost }) {
           <div id="counter" class="text-right text-xs mt-1 text-[#2c3a23]">300</div>
         </div>
 
-        <!-- Function Buttons -->
         <div class="flex justify-between mb-4">
           <button class="bg-gradient-to-b from-gray-700 to-gray-800 w-16 h-8 rounded-sm text-gray-200 text-xs shadow-lg active:shadow-sm active:translate-y-px transition-all duration-100">
             Menu
@@ -53,7 +53,6 @@ function T9KeyPad({ onPost }) {
           </button>
         </div>
 
-        <!-- D-Pad -->
         <div class="relative h-24 mb-4 flex items-center justify-center">
           <div class="relative w-24 h-24">
             <div class="absolute inset-0 bg-gradient-to-b from-gray-700 to-gray-800 rounded-sm"
@@ -70,7 +69,6 @@ function T9KeyPad({ onPost }) {
           </div>
         </div>
 
-        <!-- Action Buttons -->
         <div class="flex justify-between mb-4">
           <button id="sendBtn" class="bg-[#2c8a23] w-16 h-8 rounded-sm text-white text-xs shadow-lg active:shadow-sm active:translate-y-px transition-all duration-100">
             Send
@@ -80,7 +78,6 @@ function T9KeyPad({ onPost }) {
           </button>
         </div>
 
-        <!-- Keypad -->
         <div id="keypad" class="grid grid-cols-3 gap-2"></div>
       </div>
     `;
@@ -90,7 +87,7 @@ function T9KeyPad({ onPost }) {
     const keypad = container.querySelector('#keypad');
     const sendBtn = container.querySelector('#sendBtn');
     const clearBtn = container.querySelector('#clearBtn');
-    const debugInfo = container.querySelector('#debugInfo');
+    debugInfo = container.querySelector('#debugInfo');  // Set debugInfo after DOM creation
 
     const keyMappings = {
       '1': ['.', ',', '!', '1'],
@@ -166,24 +163,19 @@ function T9KeyPad({ onPost }) {
         keypad.appendChild(btn);
     });
 
-    function handleSend() {
+    async function handleSend() {
       addDebugLog('Send pressed: ' + new Date().toLocaleTimeString());
-      addDebugLog('Text to send: ' + text);
+      addDebugLog('Text length: ' + text.length);
       
       if (!text.trim()) {
         addDebugLog('Error: No text to send');
         return;
       }
 
-      if (typeof onPost !== 'function') {
-        addDebugLog('Error: onPost not a function');
-        return;
-      }
-
       sendBtn.style.backgroundColor = '#1c6a13';
       
       try {
-        onPost(text);
+        await onPost(text);
         text = '';
         display.textContent = 'Type your post...';
         counter.textContent = '300';
@@ -215,8 +207,7 @@ function T9KeyPad({ onPost }) {
     container.addEventListener('touchmove', e => e.preventDefault(), { passive: false });
     container.addEventListener('touchend', e => e.preventDefault(), { passive: false });
 
-    addDebugLog('T9 Ready - onPost: ' + (typeof onPost === 'function'));
-
+    addDebugLog('T9 Ready');
     return () => {
       container.innerHTML = '';
     };
