@@ -308,3 +308,61 @@ ${profile.data.description || ''}
       drawSnake();
       gameLoopRef.current = setInterval(updateSnake, 150);
     });
+
+upBtn?.addEventListener('click', () => {
+      if (gameActive && snakeRef.current.direction[1] !== 1) {
+        snakeRef.current.direction = [0, -1];
+      }
+    });
+
+    downBtn?.addEventListener('click', () => {
+      if (gameActive && snakeRef.current.direction[1] !== -1) {
+        snakeRef.current.direction = [0, 1];
+      }
+    });
+
+    leftBtn?.addEventListener('click', () => {
+      if (gameActive && snakeRef.current.direction[0] !== 1) {
+        snakeRef.current.direction = [-1, 0];
+      }
+    });
+
+    rightBtn?.addEventListener('click', () => {
+      if (gameActive && snakeRef.current.direction[0] !== -1) {
+        snakeRef.current.direction = [1, 0];
+      }
+    });
+
+    sendBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      handleSend();
+    });
+
+    sendBtn.addEventListener('touchstart', (e) => {
+      e.preventDefault();
+      handleSend();
+    }, { passive: false });
+
+    clearBtn.addEventListener('click', () => {
+      text = '';
+      lastKey = null;
+      gameActive = false;
+      clearInterval(gameLoopRef.current);
+      display.textContent = 'Type your post...';
+      display.style.lineHeight = '1.2';
+      counter.textContent = '300';
+      addDebugLog('Cleared all');
+    });
+
+    container.addEventListener('touchmove', e => e.preventDefault(), { passive: false });
+    container.addEventListener('touchend', e => e.preventDefault(), { passive: false });
+
+    addDebugLog('T9 Ready');
+    return () => {
+      clearInterval(gameLoopRef.current);
+      container.innerHTML = '';
+    };
+  }, [agent]);
+
+  return <div ref={containerRef} />;
+}
