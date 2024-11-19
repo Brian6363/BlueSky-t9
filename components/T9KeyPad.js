@@ -86,62 +86,62 @@ export default function T9KeyPad({ agent }) {
     }
 
     container.innerHTML = `
-      <div class="w-64 mx-auto bg-gray-600 rounded-3xl p-4 shadow-xl select-none"
+      <div class="w-64 mx-auto bg-gray-600 rounded-3xl p-3 shadow-xl select-none"
            style="background: linear-gradient(145deg, #666666, #4a4a4a);">
-        <div class="mb-2 p-1 bg-black rounded">
+        <div class="mb-1 p-1 bg-black rounded">
           <div class="text-yellow-400 font-mono text-[8px] whitespace-pre-line" id="debugInfo"></div>
         </div>
 
-        <div class="bg-[#b5c9a4] p-3 rounded mb-4 shadow-inner"
+        <div class="bg-[#b5c9a4] p-2 rounded mb-2 shadow-inner h-[180px] overflow-hidden"
              style="font-family: 'Courier New', monospace;">
           <div class="flex justify-between text-[#2c3a23] text-[10px] mb-1">
             <span>BlueSky</span>
             <span>ABC</span>
           </div>
-          <div class="min-h-20">
+          <div class="h-[140px] overflow-auto">
             <p id="display" class="text-[#2c3a23] text-sm break-words" 
-               style="font-family: 'Courier New', monospace; line-height: 1.2;">
+               style="font-family: 'Courier New', monospace; line-height: 1.1;">
               Type your post...
             </p>
           </div>
           <div id="counter" class="text-right text-xs mt-1 text-[#2c3a23]">300</div>
         </div>
 
-        <div class="flex justify-between mb-4">
-          <button id="menuBtn" class="bg-gradient-to-b from-gray-700 to-gray-800 w-16 h-8 rounded-sm text-gray-200 text-xs shadow-lg active:shadow-sm active:translate-y-px transition-all duration-100">
+        <div class="flex justify-between mb-2">
+          <button id="menuBtn" class="bg-gradient-to-b from-gray-700 to-gray-800 w-16 h-6 rounded-sm text-gray-200 text-xs shadow-lg active:shadow-sm active:translate-y-px transition-all duration-100">
             Menu
           </button>
-          <button id="namesBtn" class="bg-gradient-to-b from-gray-700 to-gray-800 w-16 h-8 rounded-sm text-gray-200 text-xs shadow-lg active:shadow-sm active:translate-y-px transition-all duration-100">
+          <button id="namesBtn" class="bg-gradient-to-b from-gray-700 to-gray-800 w-16 h-6 rounded-sm text-gray-200 text-xs shadow-lg active:shadow-sm active:translate-y-px transition-all duration-100">
             Names
           </button>
         </div>
 
-        <div class="relative h-24 mb-4 flex items-center justify-center">
-          <div class="relative w-24 h-24">
+        <div class="relative h-16 mb-2 flex items-center justify-center">
+          <div class="relative w-20 h-20">
             <div class="absolute inset-0 bg-gradient-to-b from-gray-700 to-gray-800 rounded-sm"
                  style="clip-path: polygon(37.5% 0, 62.5% 0, 62.5% 37.5%, 100% 37.5%, 100% 62.5%, 62.5% 62.5%, 62.5% 100%, 37.5% 100%, 37.5% 62.5%, 0 62.5%, 0 37.5%, 37.5% 37.5%);">
             </div>
             
-            <button class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-8 h-8 rounded-sm bg-gradient-to-b from-gray-600 to-gray-700 shadow-md">
+            <button class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-6 h-6 rounded-sm bg-gradient-to-b from-gray-600 to-gray-700 shadow-md">
             </button>
 
-            <button id="upBtn" class="absolute top-1 left-1/2 -translate-x-1/2 w-8 h-6 bg-gradient-to-b from-gray-600 to-gray-700 rounded-sm shadow-md active:shadow-sm active:translate-y-px"></button>
-            <button id="downBtn" class="absolute bottom-1 left-1/2 -translate-x-1/2 w-8 h-6 bg-gradient-to-b from-gray-600 to-gray-700 rounded-sm shadow-md active:shadow-sm active:translate-y-px"></button>
-            <button id="leftBtn" class="absolute left-1 top-1/2 -translate-y-1/2 w-6 h-8 bg-gradient-to-b from-gray-600 to-gray-700 rounded-sm shadow-md active:shadow-sm active:translate-x-px"></button>
-            <button id="rightBtn" class="absolute right-1 top-1/2 -translate-y-1/2 w-6 h-8 bg-gradient-to-b from-gray-600 to-gray-700 rounded-sm shadow-md active:shadow-sm active:-translate-x-px"></button>
+            <button id="upBtn" class="absolute top-0.5 left-1/2 -translate-x-1/2 w-6 h-4 bg-gradient-to-b from-gray-600 to-gray-700 rounded-sm shadow-md active:shadow-sm active:translate-y-px"></button>
+            <button id="downBtn" class="absolute bottom-0.5 left-1/2 -translate-x-1/2 w-6 h-4 bg-gradient-to-b from-gray-600 to-gray-700 rounded-sm shadow-md active:shadow-sm active:translate-y-px"></button>
+            <button id="leftBtn" class="absolute left-0.5 top-1/2 -translate-y-1/2 w-4 h-6 bg-gradient-to-b from-gray-600 to-gray-700 rounded-sm shadow-md active:shadow-sm active:translate-x-px"></button>
+            <button id="rightBtn" class="absolute right-0.5 top-1/2 -translate-y-1/2 w-4 h-6 bg-gradient-to-b from-gray-600 to-gray-700 rounded-sm shadow-md active:shadow-sm active:-translate-x-px"></button>
           </div>
         </div>
 
-        <div class="flex justify-between mb-4">
-          <button id="sendBtn" class="bg-[#2c8a23] w-16 h-8 rounded-sm text-white text-xs shadow-lg active:shadow-sm active:translate-y-px transition-all duration-100">
+        <div class="flex justify-between mb-2">
+          <button id="sendBtn" class="bg-[#2c8a23] w-16 h-6 rounded-sm text-white text-xs shadow-lg active:shadow-sm active:translate-y-px transition-all duration-100">
             Send
           </button>
-          <button id="clearBtn" class="bg-[#8a2323] w-16 h-8 rounded-sm text-white text-xs shadow-lg active:shadow-sm active:translate-y-px transition-all duration-100">
+          <button id="clearBtn" class="bg-[#8a2323] w-16 h-6 rounded-sm text-white text-xs shadow-lg active:shadow-sm active:translate-y-px transition-all duration-100">
             Clear
           </button>
         </div>
 
-        <div id="keypad" class="grid grid-cols-3 gap-2"></div>
+        <div id="keypad" class="grid grid-cols-3 gap-1"></div>
       </div>
     `;
 
