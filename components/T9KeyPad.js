@@ -18,6 +18,7 @@ export default function T9KeyPad({ agent }) {
     let lastKey = null;
     let gameActive = false;
     let debugLog = [];
+    let autoAcceptTimer = null;
 
     function addDebugLog(message) {
       debugLog.unshift(new Date().toLocaleTimeString() + ': ' + message);
@@ -50,8 +51,7 @@ export default function T9KeyPad({ agent }) {
       display.style.lineHeight = '1.1';
       display.textContent = grid.map(row => row.join('')).join('\n');
     }
-
-    function updateSnake() {
+function updateSnake() {
       const snake = snakeRef.current;
       const [headX, headY] = snake.body[0];
       const [dirX, dirY] = snake.direction;
@@ -140,7 +140,7 @@ export default function T9KeyPad({ agent }) {
       </div>
     `;
 
-    const display = container.querySelector('#display');
+const display = container.querySelector('#display');
     const counter = container.querySelector('#counter');
     const keypad = container.querySelector('#keypad');
     const sendBtn = container.querySelector('#sendBtn');
@@ -154,7 +154,7 @@ export default function T9KeyPad({ agent }) {
     const rightBtn = container.querySelector('#rightBtn');
 
     const keyMappings = {
-      '1': ['.', ',', '!', '1'],
+      '1': ['.', ',', '!', '?', '1', '-', '\'', '"', ':', ';', '(', ')', '@'],
       '2': ['a', 'b', 'c', '2'],
       '3': ['d', 'e', 'f', '3'],
       '4': ['g', 'h', 'i', '4'],
@@ -171,6 +171,9 @@ export default function T9KeyPad({ agent }) {
       
       const chars = keyMappings[key];
       
+      // Clear existing auto-accept timer
+      clearTimeout(autoAcceptTimer);
+      
       if (key !== lastKey) {
         if (text.length < 300) {
           text += chars[0];
@@ -184,6 +187,12 @@ export default function T9KeyPad({ agent }) {
       display.textContent = text || 'Type your post...';
       counter.textContent = 300 - text.length;
       lastKey = key;
+      
+      // Set new auto-accept timer
+      autoAcceptTimer = setTimeout(() => {
+        lastKey = null;
+        addDebugLog('Character accepted');
+      }, 500);
       
       navigator?.vibrate?.(1);
     }
@@ -218,6 +227,7 @@ export default function T9KeyPad({ agent }) {
             display.textContent = text || 'Type your post...';
             counter.textContent = 300 - text.length;
             lastKey = null;
+            clearTimeout(autoAcceptTimer);
           } else if (keyMappings[key]) {
             handleKey(key);
           }
@@ -228,8 +238,7 @@ export default function T9KeyPad({ agent }) {
 
         keypad.appendChild(btn);
     });
-
-    async function handleSend() {
+async function handleSend() {
       if (!text.trim() || gameActive) {
         addDebugLog('No text to send');
         return;
@@ -255,6 +264,7 @@ export default function T9KeyPad({ agent }) {
           display.textContent = 'Type your post...';
           counter.textContent = '300';
           lastKey = null;
+          clearTimeout(autoAcceptTimer);
         } else {
           addDebugLog('Error: No post URI');
         }
@@ -309,7 +319,7 @@ ${profile.data.description || ''}
       gameLoopRef.current = setInterval(updateSnake, 150);
     });
 
-   upBtn?.addEventListener('click', () => {
+upBtn?.addEventListener('click', () => {
       if (gameActive && snakeRef.current.direction[1] !== 1) {
         snakeRef.current.direction = [0, -1];
       }
@@ -348,6 +358,7 @@ ${profile.data.description || ''}
       lastKey = null;
       gameActive = false;
       clearInterval(gameLoopRef.current);
+      clearTimeout(autoAcceptTimer);
       display.textContent = 'Type your post...';
       display.style.lineHeight = '1.2';
       counter.textContent = '300';
@@ -360,6 +371,7 @@ ${profile.data.description || ''}
     addDebugLog('T9 Ready');
     return () => {
       clearInterval(gameLoopRef.current);
+      clearTimeout(autoAcceptTimer);
       container.innerHTML = '';
     };
   }, [agent]);
