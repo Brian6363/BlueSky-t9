@@ -94,7 +94,7 @@ export default function T9KeyPad({ agent }) {
             <span>BlueSky</span>
             <span>ABC</span>
           </div>
-          <div class="h-[140px] overflow-auto">
+          <div class="h-[250px] overflow-auto">
             <p id="display" class="text-[#2c3a23] text-sm break-words" 
                style="font-family: 'Courier New', monospace; line-height: 1.1;">
               Type your post...
