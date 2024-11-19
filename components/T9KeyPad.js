@@ -80,13 +80,11 @@ function updateSnake() {
       drawSnake();
     }
 
-    container.innerHTML = `
-      <div class="w-64 mx-auto bg-gray-600 rounded-3xl p-3 shadow-xl select-none"
-           style="background: linear-gradient(145deg, #666666, #4a4a4a);">
-        <div class="mb-1 p-1 bg-black rounded">
-          <div class="text-yellow-400 font-mono text-[8px] whitespace-pre-line" id="debugInfo"></div>
-        </div>
 
+    //PART 2
+    container.innerHTML = `
+      <div class="w-64 mx-auto rounded-3xl p-3 shadow-xl select-none"
+           style="background: linear-gradient(145deg, #1a237e, #0d1642);">
         <div class="bg-[#b5c9a4] p-2 rounded mb-2 shadow-inner h-[180px] overflow-hidden"
              style="font-family: 'Courier New', monospace;">
           <div class="flex justify-between text-[#2c3a23] text-[10px] mb-1">
@@ -102,43 +100,47 @@ function updateSnake() {
           <div id="counter" class="text-right text-xs mt-1 text-[#2c3a23]">300</div>
         </div>
 
-        <div class="flex justify-between mb-2">
-          <button id="menuBtn" class="bg-gradient-to-b from-gray-700 to-gray-800 w-16 h-6 rounded-sm text-gray-200 text-xs shadow-lg active:shadow-sm active:translate-y-px transition-all duration-100">
-            Menu
-          </button>
-          <button id="namesBtn" class="bg-gradient-to-b from-gray-700 to-gray-800 w-16 h-6 rounded-sm text-gray-200 text-xs shadow-lg active:shadow-sm active:translate-y-px transition-all duration-100">
-            Names
-          </button>
-        </div>
+        <div class="flex space-x-2 mb-2">
+          <!-- Left Function Keys -->
+          <div class="flex-1 grid grid-rows-2 gap-1">
+            <button id="menuBtn" class="bg-gradient-to-b from-gray-300 to-gray-400 h-6 rounded-sm text-gray-800 text-xs shadow-lg active:shadow-sm active:translate-y-px transition-all duration-100">
+              Menu
+            </button>
+            <button id="sendBtn" class="bg-gradient-to-b from-gray-300 to-gray-400 h-6 rounded-sm text-gray-800 text-xs shadow-lg active:shadow-sm active:translate-y-px transition-all duration-100">
+              Send
+            </button>
+          </div>
 
-        <div class="relative h-16 mb-2 flex items-center justify-center">
-          <div class="relative w-20 h-20">
-            <div class="absolute inset-0 bg-gradient-to-b from-gray-700 to-gray-800 rounded-sm"
+          <!-- D-Pad in Center -->
+          <div class="relative w-16 h-14">
+            <div class="absolute inset-0 bg-gradient-to-b from-gray-300 to-gray-400 rounded-sm"
                  style="clip-path: polygon(37.5% 0, 62.5% 0, 62.5% 37.5%, 100% 37.5%, 100% 62.5%, 62.5% 62.5%, 62.5% 100%, 37.5% 100%, 37.5% 62.5%, 0 62.5%, 0 37.5%, 37.5% 37.5%);">
             </div>
             
-            <button class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-6 h-6 rounded-sm bg-gradient-to-b from-gray-600 to-gray-700 shadow-md">
+            <button class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-5 h-5 rounded-sm bg-gradient-to-b from-gray-400 to-gray-500 shadow-md">
             </button>
 
-            <button id="upBtn" class="absolute top-0.5 left-1/2 -translate-x-1/2 w-6 h-4 bg-gradient-to-b from-gray-600 to-gray-700 rounded-sm shadow-md active:shadow-sm active:translate-y-px"></button>
-            <button id="downBtn" class="absolute bottom-0.5 left-1/2 -translate-x-1/2 w-6 h-4 bg-gradient-to-b from-gray-600 to-gray-700 rounded-sm shadow-md active:shadow-sm active:translate-y-px"></button>
-            <button id="leftBtn" class="absolute left-0.5 top-1/2 -translate-y-1/2 w-4 h-6 bg-gradient-to-b from-gray-600 to-gray-700 rounded-sm shadow-md active:shadow-sm active:translate-x-px"></button>
-            <button id="rightBtn" class="absolute right-0.5 top-1/2 -translate-y-1/2 w-4 h-6 bg-gradient-to-b from-gray-600 to-gray-700 rounded-sm shadow-md active:shadow-sm active:-translate-x-px"></button>
+            <button id="upBtn" class="absolute top-0.5 left-1/2 -translate-x-1/2 w-5 h-3 bg-gradient-to-b from-gray-400 to-gray-500 rounded-sm shadow-md active:shadow-sm active:translate-y-px"></button>
+            <button id="downBtn" class="absolute bottom-0.5 left-1/2 -translate-x-1/2 w-5 h-3 bg-gradient-to-b from-gray-400 to-gray-500 rounded-sm shadow-md active:shadow-sm active:translate-y-px"></button>
+            <button id="leftBtn" class="absolute left-0.5 top-1/2 -translate-y-1/2 w-3 h-5 bg-gradient-to-b from-gray-400 to-gray-500 rounded-sm shadow-md active:shadow-sm active:translate-x-px"></button>
+            <button id="rightBtn" class="absolute right-0.5 top-1/2 -translate-y-1/2 w-3 h-5 bg-gradient-to-b from-gray-400 to-gray-500 rounded-sm shadow-md active:shadow-sm active:-translate-x-px"></button>
           </div>
-        </div>
 
-        <div class="flex justify-between mb-2">
-          <button id="sendBtn" class="bg-[#2c8a23] w-16 h-6 rounded-sm text-white text-xs shadow-lg active:shadow-sm active:translate-y-px transition-all duration-100">
-            Send
-          </button>
-          <button id="clearBtn" class="bg-[#8a2323] w-16 h-6 rounded-sm text-white text-xs shadow-lg active:shadow-sm active:translate-y-px transition-all duration-100">
-            Clear
-          </button>
+          <!-- Right Function Keys -->
+          <div class="flex-1 grid grid-rows-2 gap-1">
+            <button id="namesBtn" class="bg-gradient-to-b from-gray-300 to-gray-400 h-6 rounded-sm text-gray-800 text-xs shadow-lg active:shadow-sm active:translate-y-px transition-all duration-100">
+              Names
+            </button>
+            <button id="clearBtn" class="bg-gradient-to-b from-gray-300 to-gray-400 h-6 rounded-sm text-gray-800 text-xs shadow-lg active:shadow-sm active:translate-y-px transition-all duration-100">
+              Clear
+            </button>
+          </div>
         </div>
 
         <div id="keypad" class="grid grid-cols-3 gap-1"></div>
       </div>
     `;
+//PART 3
 
 const display = container.querySelector('#display');
     const counter = container.querySelector('#counter');
@@ -197,19 +199,13 @@ const display = container.querySelector('#display');
       navigator?.vibrate?.(1);
     }
 
-    [...Array(9)].map((_, i) => i + 1)
-      .concat(['*', '0', '#'])
-      .forEach(key => {
-        const btn = document.createElement('div');
-        btn.className = `
+btn.className = `
           relative h-8 select-none
-          bg-gradient-to-b from-gray-700 to-gray-800
           shadow-lg active:shadow-sm active:translate-y-px
           transition-all duration-100
           overflow-hidden
           transform
         `;
-        // Add custom shape with pseudo-elements
         btn.style.cssText = `
           border-radius: 35% 35% 40% 40%;
           clip-path: polygon(
@@ -223,13 +219,15 @@ const display = container.querySelector('#display');
             0% 20%
           );
           transform: scale(0.95);
+          background: linear-gradient(180deg, #e0e0e0 0%, #bebebe 100%);
         `;
+
         
         if (keyMappings[key]) {
           btn.innerHTML = `
             <div class="absolute inset-0 flex flex-col items-center justify-center">
-              <div class="text-gray-200 text-sm font-bold leading-none">${key}</div>
-              <div class="text-[0.45rem] text-gray-400 mt-0.5">${keyMappings[key].join(' ')}</div>
+              <div class="text-gray-800 text-sm font-bold leading-none">${key}</div>
+              <div class="text-[0.45rem] text-gray-600 mt-0.5">${keyMappings[key].join(' ')}</div>
             </div>
             <div class="absolute inset-0 pointer-events-none"
                  style="background: linear-gradient(180deg, 
@@ -241,7 +239,7 @@ const display = container.querySelector('#display');
         } else {
           btn.innerHTML = `
             <div class="absolute inset-0 flex items-center justify-center">
-              <div class="text-gray-200 text-sm">${key}</div>
+              <div class="text-gray-800 text-sm">${key}</div>
             </div>
             <div class="absolute inset-0 pointer-events-none"
                  style="background: linear-gradient(180deg, 
