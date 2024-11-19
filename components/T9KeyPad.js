@@ -40,7 +40,7 @@ export default function T9KeyPad({ agent }) {
 
       grid[0] = `Score: ${snake.score}`.split('');
       
-      display.style.fontFamily = 'Courier New', monospace;
+      display.style.fontFamily = 'Courier New, monospace';
       display.style.lineHeight = '1.1';
       display.textContent = grid.map(row => row.join('')).join('\n');
     }
