@@ -88,7 +88,7 @@ export default function T9KeyPad({ agent }) {
    container.innerHTML = `
       <div class="w-64 mx-auto rounded-3xl p-3 shadow-xl select-none"
            style="background: linear-gradient(145deg, #1a237e, #0d1642);">
-        <div class="bg-[#b5c9a4] p-2 rounded mb-2 shadow-inner h-[180px] overflow-hidden"
+        <div class="bg-[#b5c9a4] p-2 rounded mb-2 shadow-inner h-[290px] overflow-hidden"
              style="font-family: 'Courier New', monospace;">
           <div class="flex justify-between text-[#2c3a23] text-[10px] mb-1">
             <span>BlueSky</span>
