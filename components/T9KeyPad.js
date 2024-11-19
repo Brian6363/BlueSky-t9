@@ -215,13 +215,11 @@ export default function T9KeyPad({ agent }) {
         const btn = document.createElement('div');
         btn.className = `
           relative h-8 select-none
-          bg-gradient-to-b from-gray-700 to-gray-800
           shadow-lg active:shadow-sm active:translate-y-px
           transition-all duration-100
           overflow-hidden
           transform
         `;
-        // Add custom shape with pseudo-elements
         btn.style.cssText = `
           border-radius: 35% 35% 40% 40%;
           clip-path: polygon(
@@ -235,13 +233,14 @@ export default function T9KeyPad({ agent }) {
             0% 20%
           );
           transform: scale(0.95);
+          background: linear-gradient(180deg, #e0e0e0 0%, #bebebe 100%);
         `;
         
         if (keyMappings[key]) {
           btn.innerHTML = `
             <div class="absolute inset-0 flex flex-col items-center justify-center">
-              <div class="text-gray-200 text-sm font-bold leading-none">${key}</div>
-              <div class="text-[0.45rem] text-gray-400 mt-0.5">${keyMappings[key].join(' ')}</div>
+              <div class="text-gray-800 text-sm font-bold leading-none">${key}</div>
+              <div class="text-[0.45rem] text-gray-600 mt-0.5">${keyMappings[key].join(' ')}</div>
             </div>
             <div class="absolute inset-0 pointer-events-none"
                  style="background: linear-gradient(180deg, 
