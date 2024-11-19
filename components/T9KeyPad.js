@@ -206,30 +206,69 @@ export default function T9KeyPad({ agent }) {
       navigator?.vibrate?.(1);
     }
 
-    [...Array(9)].map((_, i) => i + 1)
+[...Array(9)].map((_, i) => i + 1)
       .concat(['*', '0', '#'])
       .forEach(key => {
         const btn = document.createElement('div');
         btn.className = `
-          rounded-sm text-center p-2 select-none
+          relative h-8 select-none
           bg-gradient-to-b from-gray-700 to-gray-800
           shadow-lg active:shadow-sm active:translate-y-px
           transition-all duration-100
+          overflow-hidden
+          transform
+        `;
+        // Add custom shape with pseudo-elements
+        btn.style.cssText = `
+          border-radius: 35% 35% 40% 40%;
+          clip-path: polygon(
+            10% 0%, 
+            90% 0%, 
+            100% 20%,
+            100% 80%,
+            90% 100%,
+            10% 100%,
+            0% 80%,
+            0% 20%
+          );
+          transform: scale(0.95);
         `;
         
         if (keyMappings[key]) {
           btn.innerHTML = `
-            <div class="text-gray-200 text-sm font-bold">${key}</div>
-            <div class="text-[0.6rem] text-gray-400">${keyMappings[key].join(' ')}</div>
+            <div class="absolute inset-0 flex flex-col items-center justify-center">
+              <div class="text-gray-200 text-sm font-bold leading-none">${key}</div>
+              <div class="text-[0.45rem] text-gray-400 mt-0.5">${keyMappings[key].join(' ')}</div>
+            </div>
+            <div class="absolute inset-0 pointer-events-none"
+                 style="background: linear-gradient(180deg, 
+                                  rgba(255,255,255,0.1) 0%, 
+                                  rgba(255,255,255,0.05) 50%, 
+                                  rgba(0,0,0,0.05) 51%, 
+                                  rgba(0,0,0,0.1) 100%);"></div>
           `;
         } else {
-          btn.innerHTML = `<div class="text-gray-200 text-sm">${key}</div>`;
+          btn.innerHTML = `
+            <div class="absolute inset-0 flex items-center justify-center">
+              <div class="text-gray-200 text-sm">${key}</div>
+            </div>
+            <div class="absolute inset-0 pointer-events-none"
+                 style="background: linear-gradient(180deg, 
+                                  rgba(255,255,255,0.1) 0%, 
+                                  rgba(255,255,255,0.05) 50%, 
+                                  rgba(0,0,0,0.05) 51%, 
+                                  rgba(0,0,0,0.1) 100%);"></div>
+          `;
         }
 
         const pressHandler = (e) => {
           e.preventDefault();
-          btn.classList.add('translate-y-px', 'shadow-sm');
-          setTimeout(() => btn.classList.remove('translate-y-px', 'shadow-sm'), 100);
+          btn.style.transform = 'scale(0.92)';
+          btn.style.filter = 'brightness(0.95)';
+          setTimeout(() => {
+            btn.style.transform = 'scale(0.95)';
+            btn.style.filter = 'brightness(1)';
+          }, 100);
 
           if (key === '*' || key === '#') {
             text = text.slice(0, -1);
@@ -247,6 +286,12 @@ export default function T9KeyPad({ agent }) {
 
         keypad.appendChild(btn);
     });
+
+
+
+
+
+    
 
 
 
