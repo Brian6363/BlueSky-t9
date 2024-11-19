@@ -175,6 +175,11 @@ export default function T9KeyPad({ agent }) {
       '0': [' ', '0']
     };
 
+// Add this CSS to the keypad container
+    keypad.style.gap = '4px';
+    keypad.style.padding = '2px';
+
+    
     function handleKey(key) {
       if (gameActive) return;
       
