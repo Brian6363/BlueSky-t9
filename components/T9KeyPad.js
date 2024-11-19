@@ -17,7 +17,14 @@ export default function T9KeyPad({ agent }) {
     let text = '';
     let lastKey = null;
     let gameActive = false;
+    let debugLog = [];
     let autoAcceptTimer = null;
+
+    function addDebugLog(message) {
+      debugLog.unshift(new Date().toLocaleTimeString() + ': ' + message);
+      debugLog = debugLog.slice(0, 3);
+      if (debugInfo) debugInfo.textContent = debugLog.join('\n');
+    }
 
     function drawSnake() {
       const snake = snakeRef.current;
@@ -76,8 +83,12 @@ function updateSnake() {
     }
 
     container.innerHTML = `
-      <div class="w-64 mx-auto rounded-3xl p-3 shadow-xl select-none"
-           style="background: linear-gradient(145deg, #1a237e, #0d1642);">
+      <div class="w-64 mx-auto bg-gray-600 rounded-3xl p-3 shadow-xl select-none"
+           style="background: linear-gradient(145deg, #666666, #4a4a4a);">
+        <div class="mb-1 p-1 bg-black rounded">
+          <div class="text-yellow-400 font-mono text-[8px] whitespace-pre-line" id="debugInfo"></div>
+        </div>
+
         <div class="bg-[#b5c9a4] p-2 rounded mb-2 shadow-inner h-[180px] overflow-hidden"
              style="font-family: 'Courier New', monospace;">
           <div class="flex justify-between text-[#2c3a23] text-[10px] mb-1">
@@ -93,50 +104,50 @@ function updateSnake() {
           <div id="counter" class="text-right text-xs mt-1 text-[#2c3a23]">300</div>
         </div>
 
-        <div class="flex space-x-2 mb-2">
-          <div class="flex-1 grid grid-rows-2 gap-1">
-            <button id="menuBtn" class="bg-gradient-to-b from-gray-300 to-gray-400 h-6 rounded-sm text-gray-800 text-xs shadow-lg active:shadow-sm active:translate-y-px transition-all duration-100">
-              Menu
-            </button>
-            <button id="sendBtn" class="bg-gradient-to-b from-gray-300 to-gray-400 h-6 rounded-sm text-gray-800 text-xs shadow-lg active:shadow-sm active:translate-y-px transition-all duration-100">
-              Send
-            </button>
-          </div>
+        <div class="flex justify-between mb-2">
+          <button id="menuBtn" class="bg-gradient-to-b from-gray-700 to-gray-800 w-16 h-6 rounded-sm text-gray-200 text-xs shadow-lg active:shadow-sm active:translate-y-px transition-all duration-100">
+            Menu
+          </button>
+          <button id="namesBtn" class="bg-gradient-to-b from-gray-700 to-gray-800 w-16 h-6 rounded-sm text-gray-200 text-xs shadow-lg active:shadow-sm active:translate-y-px transition-all duration-100">
+            Names
+          </button>
+        </div>
 
-          <div class="relative w-16 h-14">
-            <div class="absolute inset-0 bg-gradient-to-b from-gray-300 to-gray-400 rounded-sm"
+        <div class="relative h-16 mb-2 flex items-center justify-center">
+          <div class="relative w-20 h-20">
+            <div class="absolute inset-0 bg-gradient-to-b from-gray-700 to-gray-800 rounded-sm"
                  style="clip-path: polygon(37.5% 0, 62.5% 0, 62.5% 37.5%, 100% 37.5%, 100% 62.5%, 62.5% 62.5%, 62.5% 100%, 37.5% 100%, 37.5% 62.5%, 0 62.5%, 0 37.5%, 37.5% 37.5%);">
             </div>
             
-            <button class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-5 h-5 rounded-sm bg-gradient-to-b from-gray-400 to-gray-500 shadow-md">
+            <button class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-6 h-6 rounded-sm bg-gradient-to-b from-gray-600 to-gray-700 shadow-md">
             </button>
 
-            <button id="upBtn" class="absolute top-0.5 left-1/2 -translate-x-1/2 w-5 h-3 bg-gradient-to-b from-gray-400 to-gray-500 rounded-sm shadow-md active:shadow-sm active:translate-y-px"></button>
-            <button id="downBtn" class="absolute bottom-0.5 left-1/2 -translate-x-1/2 w-5 h-3 bg-gradient-to-b from-gray-400 to-gray-500 rounded-sm shadow-md active:shadow-sm active:translate-y-px"></button>
-            <button id="leftBtn" class="absolute left-0.5 top-1/2 -translate-y-1/2 w-3 h-5 bg-gradient-to-b from-gray-400 to-gray-500 rounded-sm shadow-md active:shadow-sm active:translate-x-px"></button>
-            <button id="rightBtn" class="absolute right-0.5 top-1/2 -translate-y-1/2 w-3 h-5 bg-gradient-to-b from-gray-400 to-gray-500 rounded-sm shadow-md active:shadow-sm active:-translate-x-px"></button>
+            <button id="upBtn" class="absolute top-0.5 left-1/2 -translate-x-1/2 w-6 h-4 bg-gradient-to-b from-gray-600 to-gray-700 rounded-sm shadow-md active:shadow-sm active:translate-y-px"></button>
+            <button id="downBtn" class="absolute bottom-0.5 left-1/2 -translate-x-1/2 w-6 h-4 bg-gradient-to-b from-gray-600 to-gray-700 rounded-sm shadow-md active:shadow-sm active:translate-y-px"></button>
+            <button id="leftBtn" class="absolute left-0.5 top-1/2 -translate-y-1/2 w-4 h-6 bg-gradient-to-b from-gray-600 to-gray-700 rounded-sm shadow-md active:shadow-sm active:translate-x-px"></button>
+            <button id="rightBtn" class="absolute right-0.5 top-1/2 -translate-y-1/2 w-4 h-6 bg-gradient-to-b from-gray-600 to-gray-700 rounded-sm shadow-md active:shadow-sm active:-translate-x-px"></button>
           </div>
+        </div>
 
-          <div class="flex-1 grid grid-rows-2 gap-1">
-            <button id="namesBtn" class="bg-gradient-to-b from-gray-300 to-gray-400 h-6 rounded-sm text-gray-800 text-xs shadow-lg active:shadow-sm active:translate-y-px transition-all duration-100">
-              Names
-            </button>
-            <button id="clearBtn" class="bg-gradient-to-b from-gray-300 to-gray-400 h-6 rounded-sm text-gray-800 text-xs shadow-lg active:shadow-sm active:translate-y-px transition-all duration-100">
-              Clear
-            </button>
-          </div>
+        <div class="flex justify-between mb-2">
+          <button id="sendBtn" class="bg-[#2c8a23] w-16 h-6 rounded-sm text-white text-xs shadow-lg active:shadow-sm active:translate-y-px transition-all duration-100">
+            Send
+          </button>
+          <button id="clearBtn" class="bg-[#8a2323] w-16 h-6 rounded-sm text-white text-xs shadow-lg active:shadow-sm active:translate-y-px transition-all duration-100">
+            Clear
+          </button>
         </div>
 
         <div id="keypad" class="grid grid-cols-3 gap-1"></div>
       </div>
     `;
-
 //Part 3
 const display = container.querySelector('#display');
     const counter = container.querySelector('#counter');
     const keypad = container.querySelector('#keypad');
     const sendBtn = container.querySelector('#sendBtn');
     const clearBtn = container.querySelector('#clearBtn');
+    const debugInfo = container.querySelector('#debugInfo');
     const menuBtn = container.querySelector('#menuBtn');
     const namesBtn = container.querySelector('#namesBtn');
     const upBtn = container.querySelector('#upBtn');
@@ -162,6 +173,7 @@ const display = container.querySelector('#display');
       
       const chars = keyMappings[key];
       
+      // Clear existing auto-accept timer
       clearTimeout(autoAcceptTimer);
       
       if (key !== lastKey) {
@@ -178,8 +190,10 @@ const display = container.querySelector('#display');
       counter.textContent = 300 - text.length;
       lastKey = key;
       
+      // Set new auto-accept timer
       autoAcceptTimer = setTimeout(() => {
         lastKey = null;
+        addDebugLog('Character accepted');
       }, 500);
       
       navigator?.vibrate?.(1);
@@ -190,63 +204,25 @@ const display = container.querySelector('#display');
       .forEach(key => {
         const btn = document.createElement('div');
         btn.className = `
-          relative h-8 select-none
+          rounded-sm text-center p-2 select-none
+          bg-gradient-to-b from-gray-700 to-gray-800
           shadow-lg active:shadow-sm active:translate-y-px
           transition-all duration-100
-          overflow-hidden
-          transform
-        `;
-        btn.style.cssText = `
-          border-radius: 35% 35% 40% 40%;
-          clip-path: polygon(
-            10% 0%, 
-            90% 0%, 
-            100% 20%,
-            100% 80%,
-            90% 100%,
-            10% 100%,
-            0% 80%,
-            0% 20%
-          );
-          transform: scale(0.95);
-          background: linear-gradient(180deg, #e0e0e0 0%, #bebebe 100%);
         `;
         
         if (keyMappings[key]) {
           btn.innerHTML = `
-            <div class="absolute inset-0 flex flex-col items-center justify-center">
-              <div class="text-gray-800 text-sm font-bold leading-none">${key}</div>
-              <div class="text-[0.45rem] text-gray-600 mt-0.5">${keyMappings[key].join(' ')}</div>
-            </div>
-            <div class="absolute inset-0 pointer-events-none"
-                 style="background: linear-gradient(180deg, 
-                                  rgba(255,255,255,0.1) 0%, 
-                                  rgba(255,255,255,0.05) 50%, 
-                                  rgba(0,0,0,0.05) 51%, 
-                                  rgba(0,0,0,0.1) 100%);"></div>
+            <div class="text-gray-200 text-sm font-bold">${key}</div>
+            <div class="text-[0.6rem] text-gray-400">${keyMappings[key].join(' ')}</div>
           `;
         } else {
-          btn.innerHTML = `
-            <div class="absolute inset-0 flex items-center justify-center">
-              <div class="text-gray-800 text-sm">${key}</div>
-            </div>
-            <div class="absolute inset-0 pointer-events-none"
-                 style="background: linear-gradient(180deg, 
-                                  rgba(255,255,255,0.1) 0%, 
-                                  rgba(255,255,255,0.05) 50%, 
-                                  rgba(0,0,0,0.05) 51%, 
-                                  rgba(0,0,0,0.1) 100%);"></div>
-          `;
+          btn.innerHTML = `<div class="text-gray-200 text-sm">${key}</div>`;
         }
 
         const pressHandler = (e) => {
           e.preventDefault();
-          btn.style.transform = 'scale(0.92)';
-          btn.style.filter = 'brightness(0.95)';
-          setTimeout(() => {
-            btn.style.transform = 'scale(0.95)';
-            btn.style.filter = 'brightness(1)';
-          }, 100);
+          btn.classList.add('translate-y-px', 'shadow-sm');
+          setTimeout(() => btn.classList.remove('translate-y-px', 'shadow-sm'), 100);
 
           if (key === '*' || key === '#') {
             text = text.slice(0, -1);
@@ -267,12 +243,19 @@ const display = container.querySelector('#display');
 
 //Part 4
 async function handleSend() {
-      if (!text.trim() || gameActive) return;
+      if (!text.trim() || gameActive) {
+        addDebugLog('No text to send');
+        return;
+      }
 
+      addDebugLog('Sending: ' + text);
       sendBtn.style.backgroundColor = '#1c6a13';
 
       try {
-        if (!agent.session) return;
+        if (!agent.session) {
+          addDebugLog('Error: Not logged in');
+          return;
+        }
 
         const response = await agent.post({
           text: text,
@@ -280,14 +263,17 @@ async function handleSend() {
         });
 
         if (response.uri) {
+          addDebugLog('Posted successfully!');
           text = '';
           display.textContent = 'Type your post...';
           counter.textContent = '300';
           lastKey = null;
           clearTimeout(autoAcceptTimer);
+        } else {
+          addDebugLog('Error: No post URI');
         }
       } catch (error) {
-        console.error(error);
+        addDebugLog('Post error: ' + (error.message || 'Unknown error'));
       } finally {
         setTimeout(() => {
           sendBtn.style.backgroundColor = '#2c8a23';
@@ -381,11 +367,13 @@ upBtn?.addEventListener('click', () => {
       display.textContent = 'Type your post...';
       display.style.lineHeight = '1.2';
       counter.textContent = '300';
+      addDebugLog('Cleared all');
     });
 
     container.addEventListener('touchmove', e => e.preventDefault(), { passive: false });
     container.addEventListener('touchend', e => e.preventDefault(), { passive: false });
 
+    addDebugLog('T9 Ready');
     return () => {
       clearInterval(gameLoopRef.current);
       clearTimeout(autoAcceptTimer);
