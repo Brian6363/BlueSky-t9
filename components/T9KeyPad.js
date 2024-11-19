@@ -17,14 +17,7 @@ export default function T9KeyPad({ agent }) {
     let text = '';
     let lastKey = null;
     let gameActive = false;
-    let debugLog = [];
     let autoAcceptTimer = null;
-
-    function addDebugLog(message) {
-      debugLog.unshift(new Date().toLocaleTimeString() + ': ' + message);
-      debugLog = debugLog.slice(0, 3);
-      if (debugInfo) debugInfo.textContent = debugLog.join('\n');
-    }
 
     function drawSnake() {
       const snake = snakeRef.current;
@@ -47,10 +40,12 @@ export default function T9KeyPad({ agent }) {
 
       grid[0] = `Score: ${snake.score}`.split('');
       
-      display.style.fontFamily = 'Courier New, monospace';
+      display.style.fontFamily = 'Courier New', monospace;
       display.style.lineHeight = '1.1';
       display.textContent = grid.map(row => row.join('')).join('\n');
     }
+
+//Part 2
 function updateSnake() {
       const snake = snakeRef.current;
       const [headX, headY] = snake.body[0];
@@ -80,8 +75,6 @@ function updateSnake() {
       drawSnake();
     }
 
-
-    //PART 2
     container.innerHTML = `
       <div class="w-64 mx-auto rounded-3xl p-3 shadow-xl select-none"
            style="background: linear-gradient(145deg, #1a237e, #0d1642);">
@@ -101,7 +94,6 @@ function updateSnake() {
         </div>
 
         <div class="flex space-x-2 mb-2">
-          <!-- Left Function Keys -->
           <div class="flex-1 grid grid-rows-2 gap-1">
             <button id="menuBtn" class="bg-gradient-to-b from-gray-300 to-gray-400 h-6 rounded-sm text-gray-800 text-xs shadow-lg active:shadow-sm active:translate-y-px transition-all duration-100">
               Menu
@@ -111,7 +103,6 @@ function updateSnake() {
             </button>
           </div>
 
-          <!-- D-Pad in Center -->
           <div class="relative w-16 h-14">
             <div class="absolute inset-0 bg-gradient-to-b from-gray-300 to-gray-400 rounded-sm"
                  style="clip-path: polygon(37.5% 0, 62.5% 0, 62.5% 37.5%, 100% 37.5%, 100% 62.5%, 62.5% 62.5%, 62.5% 100%, 37.5% 100%, 37.5% 62.5%, 0 62.5%, 0 37.5%, 37.5% 37.5%);">
@@ -126,7 +117,6 @@ function updateSnake() {
             <button id="rightBtn" class="absolute right-0.5 top-1/2 -translate-y-1/2 w-3 h-5 bg-gradient-to-b from-gray-400 to-gray-500 rounded-sm shadow-md active:shadow-sm active:-translate-x-px"></button>
           </div>
 
-          <!-- Right Function Keys -->
           <div class="flex-1 grid grid-rows-2 gap-1">
             <button id="namesBtn" class="bg-gradient-to-b from-gray-300 to-gray-400 h-6 rounded-sm text-gray-800 text-xs shadow-lg active:shadow-sm active:translate-y-px transition-all duration-100">
               Names
@@ -140,14 +130,13 @@ function updateSnake() {
         <div id="keypad" class="grid grid-cols-3 gap-1"></div>
       </div>
     `;
-//PART 3
 
+//Part 3
 const display = container.querySelector('#display');
     const counter = container.querySelector('#counter');
     const keypad = container.querySelector('#keypad');
     const sendBtn = container.querySelector('#sendBtn');
     const clearBtn = container.querySelector('#clearBtn');
-    const debugInfo = container.querySelector('#debugInfo');
     const menuBtn = container.querySelector('#menuBtn');
     const namesBtn = container.querySelector('#namesBtn');
     const upBtn = container.querySelector('#upBtn');
@@ -173,7 +162,6 @@ const display = container.querySelector('#display');
       
       const chars = keyMappings[key];
       
-      // Clear existing auto-accept timer
       clearTimeout(autoAcceptTimer);
       
       if (key !== lastKey) {
@@ -190,16 +178,18 @@ const display = container.querySelector('#display');
       counter.textContent = 300 - text.length;
       lastKey = key;
       
-      // Set new auto-accept timer
       autoAcceptTimer = setTimeout(() => {
         lastKey = null;
-        addDebugLog('Character accepted');
       }, 500);
       
       navigator?.vibrate?.(1);
     }
 
-btn.className = `
+    [...Array(9)].map((_, i) => i + 1)
+      .concat(['*', '0', '#'])
+      .forEach(key => {
+        const btn = document.createElement('div');
+        btn.className = `
           relative h-8 select-none
           shadow-lg active:shadow-sm active:translate-y-px
           transition-all duration-100
@@ -221,7 +211,6 @@ btn.className = `
           transform: scale(0.95);
           background: linear-gradient(180deg, #e0e0e0 0%, #bebebe 100%);
         `;
-
         
         if (keyMappings[key]) {
           btn.innerHTML = `
@@ -276,29 +265,14 @@ btn.className = `
         keypad.appendChild(btn);
     });
 
-    // Add this CSS to the keypad container
-    keypad.style.gap = '4px';
-    keypad.style.padding = '2px';
+//Part 4
+async function handleSend() {
+      if (!text.trim() || gameActive) return;
 
-
-    
-    //PART 4
-    
-    
-    async function handleSend() {
-      if (!text.trim() || gameActive) {
-        addDebugLog('No text to send');
-        return;
-      }
-
-      addDebugLog('Sending: ' + text);
       sendBtn.style.backgroundColor = '#1c6a13';
 
       try {
-        if (!agent.session) {
-          addDebugLog('Error: Not logged in');
-          return;
-        }
+        if (!agent.session) return;
 
         const response = await agent.post({
           text: text,
@@ -306,17 +280,14 @@ btn.className = `
         });
 
         if (response.uri) {
-          addDebugLog('Posted successfully!');
           text = '';
           display.textContent = 'Type your post...';
           counter.textContent = '300';
           lastKey = null;
           clearTimeout(autoAcceptTimer);
-        } else {
-          addDebugLog('Error: No post URI');
         }
       } catch (error) {
-        addDebugLog('Post error: ' + (error.message || 'Unknown error'));
+        console.error(error);
       } finally {
         setTimeout(() => {
           sendBtn.style.backgroundColor = '#2c8a23';
@@ -366,6 +337,7 @@ ${profile.data.description || ''}
       gameLoopRef.current = setInterval(updateSnake, 150);
     });
 
+//Part 5
 upBtn?.addEventListener('click', () => {
       if (gameActive && snakeRef.current.direction[1] !== 1) {
         snakeRef.current.direction = [0, -1];
@@ -409,13 +381,11 @@ upBtn?.addEventListener('click', () => {
       display.textContent = 'Type your post...';
       display.style.lineHeight = '1.2';
       counter.textContent = '300';
-      addDebugLog('Cleared all');
     });
 
     container.addEventListener('touchmove', e => e.preventDefault(), { passive: false });
     container.addEventListener('touchend', e => e.preventDefault(), { passive: false });
 
-    addDebugLog('T9 Ready');
     return () => {
       clearInterval(gameLoopRef.current);
       clearTimeout(autoAcceptTimer);
