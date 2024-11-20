@@ -375,7 +375,7 @@ ${profile.data.description || ''}
       
       display.style.lineHeight = '1.1';
       drawSnake();
-      gameLoopRef.current = setInterval(updateSnake, 300);
+      gameLoopRef.current = setInterval(updateSnake, 200);
     }
 
     // Clear button handler
