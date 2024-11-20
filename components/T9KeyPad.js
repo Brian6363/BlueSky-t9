@@ -457,3 +457,37 @@ function handleUp() {
       e.preventDefault();
       handleRight();
     }, { passive: false });
+
+    sendBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      handleSend();
+    });
+
+    sendBtn.addEventListener('touchstart', (e) => {
+      e.preventDefault();
+      handleSend();
+    }, { passive: false });
+
+    clearBtn.addEventListener('click', () => {
+      text = '';
+      lastKey = null;
+      gameActive = false;
+      clearInterval(gameLoopRef.current);
+      clearTimeout(autoAcceptTimer);
+      display.textContent = 'Type your post...';
+      display.style.lineHeight = '1.2';
+      counter.textContent = '300';
+    });
+
+    container.addEventListener('touchmove', e => e.preventDefault(), { passive: false });
+    container.addEventListener('touchend', e => e.preventDefault(), { passive: false });
+
+    return () => {
+      clearInterval(gameLoopRef.current);
+      clearTimeout(autoAcceptTimer);
+      container.innerHTML = '';
+    };
+  }, [agent]);
+
+  return <div ref={containerRef} />;
+}
