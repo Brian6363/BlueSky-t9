@@ -409,62 +409,51 @@ ${profile.data.description || ''}
 
 //Part5
 
-upBtn?.addEventListener('click', () => {
+function handleUp() {
       if (gameActive && snakeRef.current.direction[1] !== 1) {
         snakeRef.current.direction = [0, -1];
       }
-    });
+    }
 
-    downBtn?.addEventListener('click', () => {
+    function handleDown() {
       if (gameActive && snakeRef.current.direction[1] !== -1) {
         snakeRef.current.direction = [0, 1];
       }
-    });
+    }
 
-    leftBtn?.addEventListener('click', () => {
+    function handleLeft() {
       if (gameActive && snakeRef.current.direction[0] !== 1) {
         snakeRef.current.direction = [-1, 0];
       }
-    });
+    }
 
-    rightBtn?.addEventListener('click', () => {
+    function handleRight() {
       if (gameActive && snakeRef.current.direction[0] !== -1) {
         snakeRef.current.direction = [1, 0];
       }
-    });
+    }
 
-    sendBtn.addEventListener('click', (e) => {
+    // D-pad touch and click handlers
+    upBtn?.addEventListener('click', handleUp);
+    upBtn?.addEventListener('touchstart', (e) => {
       e.preventDefault();
-      handleSend();
-    });
-
-    sendBtn.addEventListener('touchstart', (e) => {
-      e.preventDefault();
-      handleSend();
+      handleUp();
     }, { passive: false });
 
-    clearBtn.addEventListener('click', () => {
-      text = '';
-      lastKey = null;
-      gameActive = false;
-      clearInterval(gameLoopRef.current);
-      clearTimeout(autoAcceptTimer);
-      display.textContent = 'Type your post...';
-      display.style.lineHeight = '1.2';
-      counter.textContent = '300';
-      addDebugLog('Cleared all');
-    });
+    downBtn?.addEventListener('click', handleDown);
+    downBtn?.addEventListener('touchstart', (e) => {
+      e.preventDefault();
+      handleDown();
+    }, { passive: false });
 
-    container.addEventListener('touchmove', e => e.preventDefault(), { passive: false });
-    container.addEventListener('touchend', e => e.preventDefault(), { passive: false });
+    leftBtn?.addEventListener('click', handleLeft);
+    leftBtn?.addEventListener('touchstart', (e) => {
+      e.preventDefault();
+      handleLeft();
+    }, { passive: false });
 
-    addDebugLog('T9 Ready');
-    return () => {
-      clearInterval(gameLoopRef.current);
-      clearTimeout(autoAcceptTimer);
-      container.innerHTML = '';
-    };
-  }, [agent]);
-
-  return <div ref={containerRef} />;
-}
+    rightBtn?.addEventListener('click', handleRight);
+    rightBtn?.addEventListener('touchstart', (e) => {
+      e.preventDefault();
+      handleRight();
+    }, { passive: false });
