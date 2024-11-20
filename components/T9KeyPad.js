@@ -115,18 +115,18 @@ export default function T9KeyPad({ agent }) {
           </div>
 
           <!-- D-Pad in Center -->
-          <div class="relative w-16 h-14">
+         <div class="relative w-24 h-20">
             <div class="absolute inset-0 bg-gradient-to-b from-gray-300 to-gray-400 rounded-sm"
                  style="clip-path: polygon(37.5% 0, 62.5% 0, 62.5% 37.5%, 100% 37.5%, 100% 62.5%, 62.5% 62.5%, 62.5% 100%, 37.5% 100%, 37.5% 62.5%, 0 62.5%, 0 37.5%, 37.5% 37.5%);">
             </div>
             
-            <button class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-5 h-5 rounded-sm bg-gradient-to-b from-gray-400 to-gray-500 shadow-md">
+            <button class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-8 h-8 rounded-sm bg-gradient-to-b from-gray-400 to-gray-500 shadow-md">
             </button>
 
-            <button id="upBtn" class="absolute top-0.5 left-1/2 -translate-x-1/2 w-5 h-3 bg-gradient-to-b from-gray-400 to-gray-500 rounded-sm shadow-md active:shadow-sm active:translate-y-px"></button>
-            <button id="downBtn" class="absolute bottom-0.5 left-1/2 -translate-x-1/2 w-5 h-3 bg-gradient-to-b from-gray-400 to-gray-500 rounded-sm shadow-md active:shadow-sm active:translate-y-px"></button>
-            <button id="leftBtn" class="absolute left-0.5 top-1/2 -translate-y-1/2 w-3 h-5 bg-gradient-to-b from-gray-400 to-gray-500 rounded-sm shadow-md active:shadow-sm active:translate-x-px"></button>
-            <button id="rightBtn" class="absolute right-0.5 top-1/2 -translate-y-1/2 w-3 h-5 bg-gradient-to-b from-gray-400 to-gray-500 rounded-sm shadow-md active:shadow-sm active:-translate-x-px"></button>
+            <button id="upBtn" class="absolute top-0.5 left-1/2 -translate-x-1/2 w-8 h-5 bg-gradient-to-b from-gray-400 to-gray-500 rounded-sm shadow-md active:shadow-sm active:translate-y-px"></button>
+            <button id="downBtn" class="absolute bottom-0.5 left-1/2 -translate-x-1/2 w-8 h-5 bg-gradient-to-b from-gray-400 to-gray-500 rounded-sm shadow-md active:shadow-sm active:translate-y-px"></button>
+            <button id="leftBtn" class="absolute left-0.5 top-1/2 -translate-y-1/2 w-5 h-8 bg-gradient-to-b from-gray-400 to-gray-500 rounded-sm shadow-md active:shadow-sm active:translate-x-px"></button>
+            <button id="rightBtn" class="absolute right-0.5 top-1/2 -translate-y-1/2 w-5 h-8 bg-gradient-to-b from-gray-400 to-gray-500 rounded-sm shadow-md active:shadow-sm active:-translate-x-px"></button>
           </div>
 
           <!-- Right Function Keys -->
@@ -433,34 +433,35 @@ function handleUp() {
       }
     }
 
-    // D-pad touch and click handlers
-    upBtn?.addEventListener('click', handleUp);
-    upBtn?.addEventListener('touchstart', (e) => {
-      e.preventDefault();
-      handleUp();
-    }, { passive: false });
+// D-pad controls
+    [upBtn, downBtn, leftBtn, rightBtn].forEach(btn => {
+      if (!btn) return;
+      
+      const direction = {
+        [upBtn?.id]: [0, -1],
+        [downBtn?.id]: [0, 1],
+        [leftBtn?.id]: [-1, 0],
+        [rightBtn?.id]: [1, 0]
+      }[btn.id];
 
-    downBtn?.addEventListener('click', handleDown);
-    downBtn?.addEventListener('touchstart', (e) => {
-      e.preventDefault();
-      handleDown();
-    }, { passive: false });
+      const oppositeDir = {
+        [upBtn?.id]: 1,
+        [downBtn?.id]: -1,
+        [leftBtn?.id]: 1,
+        [rightBtn?.id]: -1
+      }[btn.id];
 
-    leftBtn?.addEventListener('click', handleLeft);
-    leftBtn?.addEventListener('touchstart', (e) => {
-      e.preventDefault();
-      handleLeft();
-    }, { passive: false });
+      const isVertical = btn.id === 'upBtn' || btn.id === 'downBtn';
 
-    rightBtn?.addEventListener('click', handleRight);
-    rightBtn?.addEventListener('touchstart', (e) => {
-      e.preventDefault();
-      handleRight();
-    }, { passive: false });
+      function handleDPad(e) {
+        e.preventDefault();
+        if (gameActive && snakeRef.current.direction[isVertical ? 1 : 0] !== oppositeDir) {
+          snakeRef.current.direction = direction;
+        }
+      }
 
-    sendBtn.addEventListener('click', (e) => {
-      e.preventDefault();
-      handleSend();
+      btn.addEventListener('click', handleDPad);
+      btn.addEventListener('touchstart', handleDPad, { passive: false });
     });
 
     sendBtn.addEventListener('touchstart', (e) => {
