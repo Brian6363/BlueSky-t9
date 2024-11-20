@@ -54,7 +54,7 @@ export default function T9KeyPad({ agent }) {
 
 
 
-
+//Part2 
 
   function updateSnake() {
       const snake = snakeRef.current;
@@ -144,7 +144,7 @@ export default function T9KeyPad({ agent }) {
       </div>
     `;
 
-
+//Part3
 
 
   const display = container.querySelector('#display');
@@ -294,25 +294,15 @@ export default function T9KeyPad({ agent }) {
 
 
     
+//Part4
 
+async function handleSend() {
+      if (!text.trim() || gameActive) return;
 
-
-
-
-  async function handleSend() {
-      if (!text.trim() || gameActive) {
-        addDebugLog('No text to send');
-        return;
-      }
-
-      addDebugLog('Sending: ' + text);
       sendBtn.style.backgroundColor = '#1c6a13';
 
       try {
-        if (!agent.session) {
-          addDebugLog('Error: Not logged in');
-          return;
-        }
+        if (!agent.session) return;
 
         const response = await agent.post({
           text: text,
@@ -320,17 +310,14 @@ export default function T9KeyPad({ agent }) {
         });
 
         if (response.uri) {
-          addDebugLog('Posted successfully!');
           text = '';
           display.textContent = 'Type your post...';
           counter.textContent = '300';
           lastKey = null;
           clearTimeout(autoAcceptTimer);
-        } else {
-          addDebugLog('Error: No post URI');
         }
       } catch (error) {
-        addDebugLog('Post error: ' + (error.message || 'Unknown error'));
+        console.error(error);
       } finally {
         setTimeout(() => {
           sendBtn.style.backgroundColor = '#2c8a23';
@@ -338,7 +325,8 @@ export default function T9KeyPad({ agent }) {
       }
     }
 
-    menuBtn.addEventListener('click', async () => {
+    // Menu button handlers
+    async function handleMenu() {
       if (gameActive) {
         gameActive = false;
         clearInterval(gameLoopRef.current);
@@ -362,9 +350,10 @@ ${profile.data.description || ''}
       } catch (err) {
         display.textContent = 'Could not load profile';
       }
-    });
+    }
 
-    namesBtn.addEventListener('click', () => {
+    // Names (Snake) button handler
+    function handleNames() {
       if (gameActive) return;
       
       gameActive = true;
@@ -378,10 +367,47 @@ ${profile.data.description || ''}
       display.style.lineHeight = '1.1';
       drawSnake();
       gameLoopRef.current = setInterval(updateSnake, 150);
-    });
+    }
+
+    // Clear button handler
+    function handleClear() {
+      text = '';
+      lastKey = null;
+      gameActive = false;
+      clearInterval(gameLoopRef.current);
+      clearTimeout(autoAcceptTimer);
+      display.textContent = 'Type your post...';
+      display.style.lineHeight = '1.2';
+      counter.textContent = '300';
+    }
+
+    // Add both click and touch handlers for all function buttons
+    menuBtn.addEventListener('click', handleMenu);
+    menuBtn.addEventListener('touchstart', (e) => {
+      e.preventDefault();
+      handleMenu();
+    }, { passive: false });
+
+    namesBtn.addEventListener('click', handleNames);
+    namesBtn.addEventListener('touchstart', (e) => {
+      e.preventDefault();
+      handleNames();
+    }, { passive: false });
+
+    clearBtn.addEventListener('click', handleClear);
+    clearBtn.addEventListener('touchstart', (e) => {
+      e.preventDefault();
+      handleClear();
+    }, { passive: false });
+
+    sendBtn.addEventListener('click', handleSend);
+    sendBtn.addEventListener('touchstart', (e) => {
+      e.preventDefault();
+      handleSend();
+    }, { passive: false });
 
 
-
+//Part5
 
 upBtn?.addEventListener('click', () => {
       if (gameActive && snakeRef.current.direction[1] !== 1) {
