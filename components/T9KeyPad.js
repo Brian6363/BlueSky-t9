@@ -85,7 +85,7 @@ export default function T9KeyPad({ agent }) {
       drawSnake();
     }
 
-   container.innerHTML = `
+    container.innerHTML = `
       <div class="w-64 mx-auto rounded-3xl p-3 shadow-xl select-none"
            style="background: linear-gradient(145deg, #1a237e, #0d1642);">
         <div class="bg-[#b5c9a4] p-2 rounded mb-2 shadow-inner h-[340px] overflow-hidden"
@@ -104,7 +104,6 @@ export default function T9KeyPad({ agent }) {
         </div>
 
         <div class="flex space-x-2 mb-2">
-          <!-- Left Function Keys -->
           <div class="flex-1 grid grid-rows-2 gap-1">
             <button id="menuBtn" class="bg-gradient-to-b from-gray-300 to-gray-400 h-6 rounded-sm text-gray-800 text-xs shadow-lg active:shadow-sm active:translate-y-px transition-all duration-100">
               Menu
@@ -114,8 +113,7 @@ export default function T9KeyPad({ agent }) {
             </button>
           </div>
 
-          <!-- D-Pad in Center -->
-        <div class="relative w-32 h-32">
+          <div class="relative w-32 h-32">
             <div class="absolute inset-0 bg-gradient-to-b from-gray-300 to-gray-400 rounded-sm"
                  style="clip-path: polygon(37.5% 0, 62.5% 0, 62.5% 37.5%, 100% 37.5%, 100% 62.5%, 62.5% 62.5%, 62.5% 100%, 37.5% 100%, 37.5% 62.5%, 0 62.5%, 0 37.5%, 37.5% 37.5%);">
             </div>
@@ -123,7 +121,6 @@ export default function T9KeyPad({ agent }) {
             <button class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-8 h-8 rounded-sm bg-gradient-to-b from-gray-400 to-gray-500 shadow-md">
             </button>
 
-            <!-- Much larger touch targets -->
             <button id="upBtn" class="absolute top-0 left-1/4 right-1/4 h-2/5 bg-gradient-to-b from-gray-400 to-gray-500 rounded-sm shadow-md active:shadow-sm active:translate-y-px">
               <div class="absolute bottom-1 left-1/2 -translate-x-1/2 w-8 h-5 bg-gradient-to-b from-gray-400 to-gray-500 rounded-sm"></div>
             </button>
@@ -138,7 +135,6 @@ export default function T9KeyPad({ agent }) {
             </button>
           </div>
 
-          <!-- Right Function Keys -->
           <div class="flex-1 grid grid-rows-2 gap-1">
             <button id="namesBtn" class="bg-gradient-to-b from-gray-300 to-gray-400 h-6 rounded-sm text-gray-800 text-xs shadow-lg active:shadow-sm active:translate-y-px transition-all duration-100">
               Names
@@ -153,6 +149,9 @@ export default function T9KeyPad({ agent }) {
       </div>
     `;
 
+
+
+    
 //Part3
 
 
