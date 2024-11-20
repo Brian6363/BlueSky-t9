@@ -115,7 +115,7 @@ export default function T9KeyPad({ agent }) {
           </div>
 
           <!-- D-Pad in Center -->
-         <div class="relative w-24 h-20">
+        <div class="relative w-32 h-32">
             <div class="absolute inset-0 bg-gradient-to-b from-gray-300 to-gray-400 rounded-sm"
                  style="clip-path: polygon(37.5% 0, 62.5% 0, 62.5% 37.5%, 100% 37.5%, 100% 62.5%, 62.5% 62.5%, 62.5% 100%, 37.5% 100%, 37.5% 62.5%, 0 62.5%, 0 37.5%, 37.5% 37.5%);">
             </div>
@@ -123,10 +123,19 @@ export default function T9KeyPad({ agent }) {
             <button class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-8 h-8 rounded-sm bg-gradient-to-b from-gray-400 to-gray-500 shadow-md">
             </button>
 
-            <button id="upBtn" class="absolute top-0.5 left-1/2 -translate-x-1/2 w-8 h-5 bg-gradient-to-b from-gray-400 to-gray-500 rounded-sm shadow-md active:shadow-sm active:translate-y-px"></button>
-            <button id="downBtn" class="absolute bottom-0.5 left-1/2 -translate-x-1/2 w-8 h-5 bg-gradient-to-b from-gray-400 to-gray-500 rounded-sm shadow-md active:shadow-sm active:translate-y-px"></button>
-            <button id="leftBtn" class="absolute left-0.5 top-1/2 -translate-y-1/2 w-5 h-8 bg-gradient-to-b from-gray-400 to-gray-500 rounded-sm shadow-md active:shadow-sm active:translate-x-px"></button>
-            <button id="rightBtn" class="absolute right-0.5 top-1/2 -translate-y-1/2 w-5 h-8 bg-gradient-to-b from-gray-400 to-gray-500 rounded-sm shadow-md active:shadow-sm active:-translate-x-px"></button>
+            <!-- Much larger touch targets -->
+            <button id="upBtn" class="absolute top-0 left-1/4 right-1/4 h-2/5 bg-gradient-to-b from-gray-400 to-gray-500 rounded-sm shadow-md active:shadow-sm active:translate-y-px">
+              <div class="absolute bottom-1 left-1/2 -translate-x-1/2 w-8 h-5 bg-gradient-to-b from-gray-400 to-gray-500 rounded-sm"></div>
+            </button>
+            <button id="downBtn" class="absolute bottom-0 left-1/4 right-1/4 h-2/5 bg-gradient-to-b from-gray-400 to-gray-500 rounded-sm shadow-md active:shadow-sm active:translate-y-px">
+              <div class="absolute top-1 left-1/2 -translate-x-1/2 w-8 h-5 bg-gradient-to-b from-gray-400 to-gray-500 rounded-sm"></div>
+            </button>
+            <button id="leftBtn" class="absolute left-0 top-1/4 bottom-1/4 w-2/5 bg-gradient-to-b from-gray-400 to-gray-500 rounded-sm shadow-md active:shadow-sm active:translate-x-px">
+              <div class="absolute right-1 top-1/2 -translate-y-1/2 w-5 h-8 bg-gradient-to-b from-gray-400 to-gray-500 rounded-sm"></div>
+            </button>
+            <button id="rightBtn" class="absolute right-0 top-1/4 bottom-1/4 w-2/5 bg-gradient-to-b from-gray-400 to-gray-500 rounded-sm shadow-md active:shadow-sm active:-translate-x-px">
+              <div class="absolute left-1 top-1/2 -translate-y-1/2 w-5 h-8 bg-gradient-to-b from-gray-400 to-gray-500 rounded-sm"></div>
+            </button>
           </div>
 
           <!-- Right Function Keys -->
