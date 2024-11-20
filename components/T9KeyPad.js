@@ -160,7 +160,6 @@ export default function T9KeyPad({ agent }) {
     const keypad = container.querySelector('#keypad');
     const sendBtn = container.querySelector('#sendBtn');
     const clearBtn = container.querySelector('#clearBtn');
-    const debugInfo = container.querySelector('#debugInfo');
     const menuBtn = container.querySelector('#menuBtn');
     const namesBtn = container.querySelector('#namesBtn');
     const upBtn = container.querySelector('#upBtn');
@@ -181,43 +180,56 @@ export default function T9KeyPad({ agent }) {
       '0': [' ', '0']
     };
 
-// Add this CSS to the keypad container
-    keypad.style.gap = '4px';
-    keypad.style.padding = '2px';
-
-    
     function handleKey(key) {
       if (gameActive) return;
       
       const chars = keyMappings[key];
-      
-      // Clear existing auto-accept timer
       clearTimeout(autoAcceptTimer);
       
       if (key !== lastKey) {
-        if (text.length < 300) {
-          text += chars[0];
+        currentT9Sequence += key;
+        currentPredictions = t9Trie.findWords(currentT9Sequence);
+        predictionIndex = currentPredictions.length > 0 ? 0 : -1;
+
+        if (currentPredictions.length > 0) {
+          // Use prediction if available
+          const lastSpaceIndex = text.lastIndexOf(' ') + 1;
+          text = text.slice(0, lastSpaceIndex) + currentPredictions[0];
+        } else {
+          // Fall back to normal T9 if no predictions
+          if (text.length < 300) {
+            text += chars[0];
+          }
         }
       } else {
-        const currentIndex = chars.indexOf(text[text.length - 1]);
-        const nextIndex = (currentIndex + 1) % chars.length;
-        text = text.slice(0, -1) + chars[nextIndex];
+        if (currentPredictions.length > 0) {
+          // Cycle through predictions
+          predictionIndex = (predictionIndex + 1) % currentPredictions.length;
+          const lastSpaceIndex = text.lastIndexOf(' ') + 1;
+          text = text.slice(0, lastSpaceIndex) + currentPredictions[predictionIndex];
+        } else {
+          // Fall back to normal T9 cycling
+          const currentIndex = chars.indexOf(text[text.length - 1]);
+          const nextIndex = (currentIndex + 1) % chars.length;
+          text = text.slice(0, -1) + chars[nextIndex];
+        }
       }
       
       display.textContent = text || 'Type your post...';
       counter.textContent = 300 - text.length;
       lastKey = key;
       
-      // Set new auto-accept timer
       autoAcceptTimer = setTimeout(() => {
         lastKey = null;
-        addDebugLog('Character accepted');
-      }, 500);
+        currentT9Sequence = '';
+        currentPredictions = [];
+        predictionIndex = -1;
+      }, 1000);
       
       navigator?.vibrate?.(1);
     }
 
-[...Array(9)].map((_, i) => i + 1)
+    [...Array(9)].map((_, i) => i + 1)
       .concat(['*', '0', '#'])
       .forEach(key => {
         const btn = document.createElement('div');
@@ -260,7 +272,7 @@ export default function T9KeyPad({ agent }) {
         } else {
           btn.innerHTML = `
             <div class="absolute inset-0 flex items-center justify-center">
-              <div class="text-gray-200 text-sm">${key}</div>
+              <div class="text-gray-800 text-sm">${key}</div>
             </div>
             <div class="absolute inset-0 pointer-events-none"
                  style="background: linear-gradient(180deg, 
@@ -300,7 +312,6 @@ export default function T9KeyPad({ agent }) {
 
 
 
-
     
 //Part4
 
@@ -323,6 +334,9 @@ async function handleSend() {
           counter.textContent = '300';
           lastKey = null;
           clearTimeout(autoAcceptTimer);
+          currentT9Sequence = '';
+          currentPredictions = [];
+          predictionIndex = -1;
         }
       } catch (error) {
         console.error(error);
@@ -333,8 +347,7 @@ async function handleSend() {
       }
     }
 
-    // Menu button handlers
-    async function handleMenu() {
+    menuBtn.addEventListener('click', async () => {
       if (gameActive) {
         gameActive = false;
         clearInterval(gameLoopRef.current);
@@ -358,10 +371,9 @@ ${profile.data.description || ''}
       } catch (err) {
         display.textContent = 'Could not load profile';
       }
-    }
+    });
 
-    // Names (Snake) button handler
-    function handleNames() {
+    namesBtn.addEventListener('click', () => {
       if (gameActive) return;
       
       gameActive = true;
@@ -374,72 +386,19 @@ ${profile.data.description || ''}
       
       display.style.lineHeight = '1.1';
       drawSnake();
-      gameLoopRef.current = setInterval(updateSnake, 200);
-    }
+      gameLoopRef.current = setInterval(updateSnake, 150);
+    });
 
-    // Clear button handler
-    function handleClear() {
-      text = '';
-      lastKey = null;
-      gameActive = false;
-      clearInterval(gameLoopRef.current);
-      clearTimeout(autoAcceptTimer);
-      display.textContent = 'Type your post...';
-      display.style.lineHeight = '1.2';
-      counter.textContent = '300';
-    }
-
-    // Add both click and touch handlers for all function buttons
-    menuBtn.addEventListener('click', handleMenu);
     menuBtn.addEventListener('touchstart', (e) => {
       e.preventDefault();
-      handleMenu();
+      menuBtn.click();
     }, { passive: false });
 
-    namesBtn.addEventListener('click', handleNames);
     namesBtn.addEventListener('touchstart', (e) => {
       e.preventDefault();
-      handleNames();
+      namesBtn.click();
     }, { passive: false });
-
-    clearBtn.addEventListener('click', handleClear);
-    clearBtn.addEventListener('touchstart', (e) => {
-      e.preventDefault();
-      handleClear();
-    }, { passive: false });
-
-    sendBtn.addEventListener('click', handleSend);
-    sendBtn.addEventListener('touchstart', (e) => {
-      e.preventDefault();
-      handleSend();
-    }, { passive: false });
-
-
 //Part5
-
-function handleUp() {
-      if (gameActive && snakeRef.current.direction[1] !== 1) {
-        snakeRef.current.direction = [0, -1];
-      }
-    }
-
-    function handleDown() {
-      if (gameActive && snakeRef.current.direction[1] !== -1) {
-        snakeRef.current.direction = [0, 1];
-      }
-    }
-
-    function handleLeft() {
-      if (gameActive && snakeRef.current.direction[0] !== 1) {
-        snakeRef.current.direction = [-1, 0];
-      }
-    }
-
-    function handleRight() {
-      if (gameActive && snakeRef.current.direction[0] !== -1) {
-        snakeRef.current.direction = [1, 0];
-      }
-    }
 
 // D-pad controls
     [upBtn, downBtn, leftBtn, rightBtn].forEach(btn => {
@@ -472,6 +431,11 @@ function handleUp() {
       btn.addEventListener('touchstart', handleDPad, { passive: false });
     });
 
+    sendBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      handleSend();
+    });
+
     sendBtn.addEventListener('touchstart', (e) => {
       e.preventDefault();
       handleSend();
@@ -483,10 +447,18 @@ function handleUp() {
       gameActive = false;
       clearInterval(gameLoopRef.current);
       clearTimeout(autoAcceptTimer);
+      currentT9Sequence = '';
+      currentPredictions = [];
+      predictionIndex = -1;
       display.textContent = 'Type your post...';
       display.style.lineHeight = '1.2';
       counter.textContent = '300';
     });
+
+    clearBtn.addEventListener('touchstart', (e) => {
+      e.preventDefault();
+      clearBtn.click();
+    }, { passive: false });
 
     container.addEventListener('touchmove', e => e.preventDefault(), { passive: false });
     container.addEventListener('touchend', e => e.preventDefault(), { passive: false });
